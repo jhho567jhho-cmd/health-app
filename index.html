@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>אפליקציית בריאות וכושר</title>
+    <title>אפליקציית בריאות וכושר משותפת</title>
     <style>
         * {
             margin: 0;
@@ -22,54 +22,137 @@
             direction: rtl;
         }
 
-        .container {
-            max-width: 100%;
+        .login-screen {
             height: 100vh;
-            background: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-box h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .login-box p {
+            font-size: 16px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 15px;
+            flex-direction: column;
+        }
+
+        .login-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .login-btn.chaim {
+            background: white;
+            color: #667eea;
+        }
+
+        .login-btn.chaim:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-btn.devorah {
+            background: #ff6b9d;
+            color: white;
+        }
+
+        .login-btn.devorah:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .app-container {
+            display: none;
+            height: 100vh;
+            background: white;
+            flex-direction: column;
+        }
+
+        .app-container.active {
+            display: flex;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             border-bottom: 3px solid #764ba2;
             flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .content {
+            font-size: 22px;
             flex: 1;
-            overflow-y: auto;
-            padding: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .tabs {
             display: flex;
             gap: 5px;
-            margin-bottom: 15px;
+            padding: 10px;
             background: #f0f0f0;
             border-radius: 8px;
-            padding: 5px;
             flex-wrap: wrap;
             flex-shrink: 0;
+            overflow-x: auto;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 10px 5px;
+            padding: 10px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -85,7 +168,13 @@
         .tab-btn.active {
             background: white;
             color: #667eea;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
         }
 
         .tab-content {
@@ -111,8 +200,7 @@
         input[type="text"],
         input[type="number"],
         input[type="datetime-local"],
-        input[type="date"],
-        input[type="time"],
+        textarea,
         select {
             width: 100%;
             padding: 10px;
@@ -121,6 +209,7 @@
             font-size: 14px;
             direction: rtl;
             font-family: inherit;
+            resize: vertical;
         }
 
         button {
@@ -142,16 +231,7 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .item {
+        .note-item {
             background: #f9f9f9;
             padding: 12px;
             border-radius: 5px;
@@ -159,27 +239,23 @@
             border-right: 3px solid #667eea;
         }
 
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .item-title {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .item-date {
+        .note-author {
             font-size: 12px;
             color: #999;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
 
-        .item-detail {
-            font-size: 13px;
-            color: #666;
-            margin: 5px 0;
+        .note-content {
+            color: #333;
+            margin-bottom: 5px;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .note-date {
+            font-size: 12px;
+            color: #999;
         }
 
         .delete-btn {
@@ -195,128 +271,13 @@
             box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4) !important;
         }
 
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .completed {
-            opacity: 0.6;
-            text-decoration: line-through;
-        }
-
-        .photo-item {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .photo-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #f0f0f0;
-        }
-
-        .photo-info {
-            padding: 12px;
-        }
-
-        .photo-note {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-            word-break: break-word;
-        }
-
-        .photo-date {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 10px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 30px 20px;
-        }
-
-        .empty-state-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .ai-button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .ai-quick-btn {
-            background: #667eea !important;
-            padding: 10px !important;
-            font-size: 12px !important;
-            border-radius: 5px !important;
-        }
-
-        .ai-response-box {
+        .success-msg {
             background: #e8f5e9;
-            border-right: 3px solid #4caf50;
-            padding: 12px;
-            border-radius: 5px;
-            margin-top: 15px;
-            white-space: pre-wrap;
-            line-height: 1.6;
             color: #2e7d32;
-            font-size: 13px;
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .button-group button {
-            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-right: 3px solid #4caf50;
         }
 
         .error-msg {
@@ -328,25 +289,49 @@
             border-right: 3px solid #c62828;
         }
 
-        .success-msg {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border-right: 3px solid #4caf50;
+        .online-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 30px 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h1>💪 בריאות וכושר</h1>
+            <p>אפליקציה משותפת עבור חיים ודבורה</p>
+            <div class="login-buttons">
+                <button class="login-btn chaim" onclick="login('chaim')">👨 כניסה כחיים</button>
+                <button class="login-btn devorah" onclick="login('devorah')">👩 כניסה כדבורה</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div id="appContainer" class="app-container">
         <div class="header">
             <h1>💪 בריאות וכושר</h1>
-            <p>עקוב אחרי הדרך שלך</p>
+            <div class="user-info">
+                <span id="currentUser"></span>
+                <span class="online-status"></span>
+                <button class="logout-btn" onclick="logout()">התנתק</button>
+            </div>
         </div>
 
-        <div class="tabs" style="margin: 15px;">
-            <button class="tab-btn active" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
+        <div class="tabs" style="margin: 10px;">
+            <button class="tab-btn active" onclick="switchTab(event, 'notes')">📝 סיכרונות משותפות</button>
+            <button class="tab-btn" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
             <button class="tab-btn" onclick="switchTab(event, 'photos')">📸 תמונות</button>
             <button class="tab-btn" onclick="switchTab(event, 'menu')">🍽️ תפריט</button>
             <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
@@ -355,37 +340,45 @@
         </div>
 
         <div class="content">
+            <!-- Shared Notes Tab (NEW) -->
+            <div id="notes" class="tab-content active">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">📝 סיכרונות משותפות</h2>
+
+                <div class="input-group">
+                    <label>כתוב סיכרון חדש:</label>
+                    <textarea id="noteInput" placeholder="כתוב הערה או סיכרון..." rows="4" style="resize: vertical;"></textarea>
+                </div>
+                <button onclick="addSharedNote()">💾 שמור סיכרון</button>
+
+                <div style="margin-top: 20px;">
+                    <h3 style="color: #333; margin-bottom: 10px;">סיכרונות אחרונים:</h3>
+                    <div id="notesList"></div>
+                </div>
+            </div>
+
             <!-- AI Assistant Tab -->
-            <div id="ai" class="tab-content active">
+            <div id="ai" class="tab-content">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
-
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
-                    <p style="color: #333; line-height: 1.5; font-size: 13px;">
-                        👋 שלום! בחר נושא או שאל שאלה:
-                    </p>
+                    <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
                 </div>
-
-                <div class="ai-button-group">
-                    <button class="ai-quick-btn" onclick="openAI('בריאות')">💪 בריאות</button>
-                    <button class="ai-quick-btn" onclick="openAI('משקל')">⚖️ משקל</button>
-                    <button class="ai-quick-btn" onclick="openAI('מתכונים')">🍽️ מתכונים</button>
-                    <button class="ai-quick-btn" onclick="openAI('תרגילים')">🏃 תרגילים</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+                    <button onclick="openAI('בריאות')">💪 בריאות</button>
+                    <button onclick="openAI('משקל')">⚖️ משקל</button>
+                    <button onclick="openAI('מתכונים')">🍽️ מתכונים</button>
+                    <button onclick="openAI('תרגילים')">🏃 תרגילים</button>
                 </div>
-
-                <div style="border-top: 2px solid #ddd; padding-top: 15px;">
-                    <label>או שאל שאלה משלך:</label>
-                    <input type="text" id="aiQuestion" placeholder="שאל אותי משהו..." style="margin-bottom: 10px;">
-                    <button onclick="openAI(document.getElementById('aiQuestion').value)">🚀 שלח</button>
-                </div>
-
+                <label>או שאל שאלה משלך:</label>
+                <input type="text" id="aiQuestion" placeholder="שאל אותי משהו...">
+                <button onclick="openAI(document.getElementById('aiQuestion').value)" style="margin-top: 10px;">🚀 שלח</button>
                 <div id="aiResponse"></div>
             </div>
 
             <!-- Photos Tab -->
             <div id="photos" class="tab-content">
-                <div class="button-group" style="margin-bottom: 15px;">
-                    <button onclick="triggerCameraInput()" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);">📷 צלם תמונה</button>
-                    <button onclick="triggerPhotoInput()" style="background: linear-gradient(135deg, #2196f3 0%, #0b7dda 100%);">📁 בחר תמונה</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <button onclick="triggerCameraInput()">📷 צלם תמונה</button>
+                    <button onclick="triggerPhotoInput()">📁 בחר תמונה</button>
                 </div>
                 <div class="input-group">
                     <label>הערה על התמונה:</label>
@@ -429,7 +422,6 @@
 
             <!-- Weight Tab -->
             <div id="weight" class="tab-content">
-                <div class="stats" id="weightStats"></div>
                 <div class="input-group">
                     <label>משקל (ק"ג):</label>
                     <input type="number" id="weightValue" placeholder="0.0" step="0.1" min="0">
@@ -454,8 +446,27 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+
     <script>
-        const DATA_KEY = 'health-app-data-v5';
+        // Firebase Configuration (UPDATE THIS)
+        const firebaseConfig = {
+            apiKey: "REPLACE_WITH_YOUR_API_KEY",
+            authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+            projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+            databaseURL: "https://REPLACE_WITH_YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            storageBucket: "REPLACE_WITH_YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+            appId: "REPLACE_WITH_YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentUser = null;
+        const DATA_KEY = 'health-app-data-v6';
         const TIPS = [
             '🚶 הליכה 30 דקות ביום היא טובה כמו סופרגיבור!',
             '💧 שתה 8 כוסות מים ביום להישאר מחוברת.',
@@ -474,53 +485,117 @@
             'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה'
         };
 
+        // Login
+        function login(user) {
+            currentUser = user;
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('active');
+            document.getElementById('currentUser').textContent = user === 'chaim' ? '👨 חיים' : '👩 דבורה';
+            loadSharedNotes();
+            displayPhotos();
+            displayMenu();
+            displayTips();
+            displayWeight();
+            displayTasks();
+            initWeightDate();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appContainer').classList.remove('active');
+        }
+
+        // Shared Notes (Firebase Sync)
+        function addSharedNote() {
+            const noteText = document.getElementById('noteInput').value.trim();
+            if (!noteText) {
+                showError('⚠️ כתוב משהו');
+                return;
+            }
+
+            const noteData = {
+                author: currentUser === 'chaim' ? '👨 חיים' : '👩 דבורה',
+                content: noteText,
+                timestamp: new Date().toLocaleString('he-IL'),
+                id: Date.now()
+            };
+
+            database.ref('sharedNotes').push(noteData, (error) => {
+                if (error) {
+                    showError('❌ שגיאה בשמירה');
+                    console.error(error);
+                } else {
+                    document.getElementById('noteInput').value = '';
+                    showSuccess('✅ סיכרון נשמר!');
+                    loadSharedNotes();
+                }
+            });
+        }
+
+        function loadSharedNotes() {
+            database.ref('sharedNotes').on('value', (snapshot) => {
+                const notes = snapshot.val() || {};
+                displaySharedNotes(notes);
+            });
+        }
+
+        function displaySharedNotes(notesObj) {
+            const list = document.getElementById('notesList');
+            const notesArray = Object.entries(notesObj).map(([key, val]) => ({...val, firebaseKey: key}));
+            notesArray.reverse();
+
+            if (notesArray.length === 0) {
+                list.innerHTML = '<div class="empty-state">אין סיכרונות עדיין</div>';
+                return;
+            }
+
+            list.innerHTML = notesArray.map(note => `
+                <div class="note-item">
+                    <div class="note-author">${note.author}</div>
+                    <div class="note-content">${note.content}</div>
+                    <div class="note-date">${note.timestamp}</div>
+                    <button class="delete-btn" onclick="deleteNote('${note.firebaseKey}');">🗑️ מחק</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteNote(key) {
+            database.ref('sharedNotes/' + key).remove();
+        }
+
+        // Local Data Functions (localStorage)
         function getData() {
             try {
                 const data = localStorage.getItem(DATA_KEY);
                 return data ? JSON.parse(data) : getDefaultData();
             } catch (e) {
-                console.error('Error reading data:', e);
                 return getDefaultData();
             }
         }
 
         function getDefaultData() {
-            return {
-                photos: [],
-                menu: [],
-                weights: [],
-                tasks: [],
-                aiTips: []
-            };
+            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [] };
         }
 
         function saveData(data) {
             try {
                 localStorage.setItem(DATA_KEY, JSON.stringify(data));
             } catch (e) {
-                console.error('Error saving data:', e);
-                alert('שגיאה בשמירת הנתונים');
+                showError('❌ שגיאה בשמירה');
             }
         }
 
         function switchTab(event, tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-
-            if (tabName === 'weight') displayWeight();
-            else if (tabName === 'photos') displayPhotos();
-            else if (tabName === 'menu') displayMenu();
-            else if (tabName === 'tasks') displayTasks();
-            else if (tabName === 'tips') displayTips();
         }
 
         let selectedPhotoFile = null;
 
         function triggerCameraInput() {
-            // יצירת file input חדש כל פעם כדי שיעבוד מחדש
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -528,21 +603,20 @@
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     selectedPhotoFile = e.target.files[0];
-                    showSuccess('✅ תמונה נבחרה! הוסף הערה והקלק שמור');
+                    showSuccess('✅ תמונה נבחרה!');
                 }
             };
             input.click();
         }
 
         function triggerPhotoInput() {
-            // יצירת file input חדש כל פעם כדי שיעבוד מחדש
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
             input.onchange = function(e) {
                 if (e.target.files && e.target.files[0]) {
                     selectedPhotoFile = e.target.files[0];
-                    showSuccess('✅ תמונה נבחרה! הוסף הערה והקלק שמור');
+                    showSuccess('✅ תמונה נבחרה!');
                 }
             };
             input.click();
@@ -550,11 +624,22 @@
 
         function addPhoto() {
             if (!selectedPhotoFile) {
-                showError('⚠️ בחר או צלם תמונה תחילה');
+                showError('⚠️ בחר תמונה');
                 return;
             }
-            processPhoto(selectedPhotoFile);
-            selectedPhotoFile = null;
+            compressImage(selectedPhotoFile, function(compressedImage) {
+                const data = getData();
+                data.photos.push({
+                    image: compressedImage,
+                    note: document.getElementById('photoNote').value || 'ללא הערה',
+                    date: new Date().toLocaleString('he-IL')
+                });
+                saveData(data);
+                document.getElementById('photoNote').value = '';
+                selectedPhotoFile = null;
+                displayPhotos();
+                showSuccess('✅ תמונה נשמרה!');
+            });
         }
 
         function compressImage(file, callback) {
@@ -565,8 +650,6 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-
-                    // הקטן את התמונה לגודל קטן יותר (500x500)
                     const maxWidth = 500;
                     const maxHeight = 500;
                     if (width > height) {
@@ -580,13 +663,10 @@
                             height = maxHeight;
                         }
                     }
-
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    // דחס את התמונה בקוואליטי נמוך (30%) כדי לשמור יותר תמונות
                     const compressedData = canvas.toDataURL('image/jpeg', 0.3);
                     callback(compressedData);
                 };
@@ -595,47 +675,19 @@
             reader.readAsDataURL(file);
         }
 
-        function processPhoto(file) {
-            if (!file.type.startsWith('image/')) {
-                alert('בחר קובץ תמונה בבקשה');
-                return;
-            }
-
-            compressImage(file, function(compressedImage) {
-                const data = getData();
-                data.photos.push({
-                    image: compressedImage,
-                    note: document.getElementById('photoNote').value || 'ללא הערה',
-                    date: new Date().toLocaleString('he-IL')
-                });
-
-                try {
-                    saveData(data);
-                    document.getElementById('photoNote').value = '';
-                    displayPhotos();
-                    showSuccess('✅ תמונה נשמרה בהצלחה!');
-                } catch (e) {
-                    showError('❌ לא מספיק מקום לשמירת תמונות. נסה להסיר כמה תמונות ישנות.');
-                    console.error('Error saving photo:', e);
-                }
-            });
-        }
-
         function displayPhotos() {
             const data = getData();
             const list = document.getElementById('photosList');
-
             if (data.photos.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><p>אין תמונות עדיין</p></div>';
+                list.innerHTML = '<div class="empty-state">אין תמונות</div>';
                 return;
             }
-
             list.innerHTML = data.photos.map((photo, i) => `
-                <div class="photo-item">
-                    <img src="${photo.image}" class="photo-image" alt="תמונה">
-                    <div class="photo-info">
-                        <div class="photo-note">${photo.note}</div>
-                        <div class="photo-date">${photo.date}</div>
+                <div style="background: white; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
+                    <img src="${photo.image}" style="width: 100%; height: 200px; object-fit: cover;">
+                    <div style="padding: 12px;">
+                        <div style="color: #666; font-size: 14px; margin-bottom: 5px;">${photo.note}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 10px;">${photo.date}</div>
                         <button class="delete-btn" onclick="deletePhoto(${i});">🗑️ מחק</button>
                     </div>
                 </div>
@@ -653,12 +705,10 @@
             const name = document.getElementById('menuName').value.trim();
             const cal = document.getElementById('menuCal').value;
             const cat = document.getElementById('menuCat').value;
-
             if (!name || !cal || !cat) {
-                showError('⚠️ מלא את כל השדות');
+                showError('⚠️ מלא הכל');
                 return;
             }
-
             const data = getData();
             data.menu.push({
                 name: name,
@@ -671,25 +721,21 @@
             document.getElementById('menuCal').value = '';
             document.getElementById('menuCat').value = '';
             displayMenu();
-            showSuccess('✅ מנה נוספה בהצלחה!');
+            showSuccess('✅ נוסף!');
         }
 
         function displayMenu() {
             const data = getData();
             const list = document.getElementById('menuList');
-
             if (data.menu.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽️</div><p>אין פריטים בתפריט</p></div>';
+                list.innerHTML = '<div class="empty-state">אין פריטים</div>';
                 return;
             }
-
             list.innerHTML = data.menu.map((item, i) => `
-                <div class="item">
-                    <div class="item-header">
-                        <span class="item-title">${item.name}</span>
-                        <span class="item-date">${item.cat}</span>
-                    </div>
-                    <div class="item-detail">📊 ${item.cal} קלוריות</div>
+                <div class="note-item">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
+                    <div style="color: #666;">📊 ${item.cal} קלוריות | ${item.cat}</div>
+                    <div style="font-size: 12px; color: #999; margin: 5px 0;">${item.date}</div>
                     <button class="delete-btn" onclick="deleteMenuItem(${i});">🗑️ מחק</button>
                 </div>
             `).join('');
@@ -716,16 +762,14 @@
         function displayTips() {
             const data = getData();
             const list = document.getElementById('tipsList');
-
             if (data.aiTips.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💡</div><p>לחץ על הכפתור לקבל טיפ</p></div>';
+                list.innerHTML = '<div class="empty-state">לחץ על הכפתור</div>';
                 return;
             }
-
             list.innerHTML = data.aiTips.map((tip, i) => `
-                <div class="item">
-                    <div class="item-detail">${tip.tip}</div>
-                    <div class="item-date">${tip.date}</div>
+                <div class="note-item">
+                    <div style="margin-bottom: 5px;">${tip.tip}</div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 10px;">${tip.date}</div>
                     <button class="delete-btn" onclick="deleteTip(${i});">🗑️ מחק</button>
                 </div>
             `).join('');
@@ -740,61 +784,51 @@
 
         function addWeight() {
             const value = document.getElementById('weightValue').value;
-            const date = document.getElementById('weightDate').value;
-
             if (!value) {
                 showError('⚠️ הכנס משקל');
                 return;
             }
-
             const data = getData();
-            const dateObj = date ? new Date(date) : new Date();
+            const dateObj = document.getElementById('weightDate').value ? new Date(document.getElementById('weightDate').value) : new Date();
             data.weights.push({
                 val: parseFloat(value),
                 time: dateObj.toLocaleString('he-IL')
             });
             saveData(data);
             document.getElementById('weightValue').value = '';
-            document.getElementById('weightDate').value = '';
             displayWeight();
-            showSuccess('✅ משקל נשמר בהצלחה!');
+            showSuccess('✅ שמור!');
         }
 
         function displayWeight() {
             const data = getData();
             const list = document.getElementById('weightList');
-            const statsDiv = document.getElementById('weightStats');
-
             if (data.weights.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚖️</div><p>אין נתוני משקל עדיין</p></div>';
-                statsDiv.innerHTML = '';
+                list.innerHTML = '<div class="empty-state">אין נתונים</div>';
                 return;
             }
-
             const weights = data.weights.map(w => parseFloat(w.val));
             const latest = weights[weights.length - 1];
             const avg = (weights.reduce((a, b) => a + b) / weights.length).toFixed(1);
-
-            statsDiv.innerHTML = `
-                <div class="stat-box">
-                    <div class="stat-value">${latest}</div>
-                    <div class="stat-label">משקל אחרון</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">${avg}</div>
-                    <div class="stat-label">ממוצע</div>
-                </div>
-            `;
-
-            list.innerHTML = data.weights.map((weight, i) => `
-                <div class="item">
-                    <div class="item-header">
-                        <span class="item-title">⚖️ ${weight.val} ק"ג</span>
-                        <span class="item-date">${weight.time}</span>
+            list.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold;">${latest}</div>
+                        <div style="font-size: 12px;">משקל אחרון</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteWeight(${i});">🗑️ מחק</button>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold;">${avg}</div>
+                        <div style="font-size: 12px;">ממוצע</div>
+                    </div>
                 </div>
-            `).reverse().join('');
+                ${data.weights.map((w, i) => `
+                    <div class="note-item">
+                        <div style="font-weight: bold;">⚖️ ${w.val} ק"ג</div>
+                        <div style="font-size: 12px; color: #999; margin: 5px 0;">${w.time}</div>
+                        <button class="delete-btn" onclick="deleteWeight(${i});">🗑️ מחק</button>
+                    </div>
+                `).reverse().join('')}
+            `;
         }
 
         function deleteWeight(index) {
@@ -806,12 +840,10 @@
 
         function addTask() {
             const name = document.getElementById('taskName').value.trim();
-
             if (!name) {
-                showError('⚠️ הכנס שם משימה');
+                showError('⚠️ הכנס שם');
                 return;
             }
-
             const data = getData();
             data.tasks.push({
                 name: name,
@@ -821,27 +853,23 @@
             saveData(data);
             document.getElementById('taskName').value = '';
             displayTasks();
-            showSuccess('✅ משימה נוספה בהצלחה!');
+            showSuccess('✅ נוסף!');
         }
 
         function displayTasks() {
             const data = getData();
             const list = document.getElementById('tasksList');
-
             if (data.tasks.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><p>אין משימות עדיין</p></div>';
+                list.innerHTML = '<div class="empty-state">אין משימות</div>';
                 return;
             }
-
             list.innerHTML = data.tasks.map((task, i) => `
-                <div class="item ${task.completed ? 'completed' : ''}">
-                    <div class="item-header">
-                        <div class="checkbox-container">
-                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
-                            <span class="item-title">${task.name}</span>
-                        </div>
+                <div class="note-item ${task.completed ? 'completed' : ''}" style="${task.completed ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-weight: bold;">${task.name}</span>
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})" style="width: 18px; height: 18px; cursor: pointer;">
                     </div>
-                    <div class="item-date">${task.date}</div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 10px;">${task.date}</div>
                     <button class="delete-btn" onclick="deleteTask(${i});">🗑️ מחק</button>
                 </div>
             `).join('');
@@ -863,29 +891,24 @@
 
         function openAI(question) {
             if (!question || question.trim() === '') {
-                showError('⚠️ בבקשה שאל שאלה');
+                showError('⚠️ שאל משהו');
                 return;
             }
-
             const responseDiv = document.getElementById('aiResponse');
-            responseDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">⏳ אני חושב על התשובה...</div>';
-
+            responseDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">⏳ חושב...</div>';
             let response = null;
             const questionLower = question.toLowerCase();
-
             for (let [keyword, answer] of Object.entries(AI_RESPONSES)) {
                 if (questionLower.includes(keyword)) {
                     response = answer;
                     break;
                 }
             }
-
             if (!response) {
-                response = '👋 שלום! אני יכול לעזור לך עם:\n\n• משקל\n• בריאות\n• מתכונים\n• תרגילים\n\nנסה לשאול על אחד מהנושאים!';
+                response = '👋 שלום! אני יכול לעזור עם:\n\n• משקל\n• בריאות\n• מתכונים\n• תרגילים\n\nנסה שוב!';
             }
-
             setTimeout(() => {
-                responseDiv.innerHTML = `<div class="ai-response-box">${response}</div>`;
+                responseDiv.innerHTML = `<div style="background: #e8f5e9; border-right: 3px solid #4caf50; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; line-height: 1.6; color: #2e7d32; font-size: 13px;">${response}</div>`;
                 document.getElementById('aiQuestion').value = '';
             }, 600);
         }
@@ -908,18 +931,11 @@
             setTimeout(() => msgDiv.remove(), 3000);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            displayPhotos();
-            displayMenu();
-            displayTips();
-            displayWeight();
-            displayTasks();
-
+        function initWeightDate() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('weightDate').value = now.toISOString().slice(0, 16);
-        });
+        }
     </script>
 </body>
 </html>
