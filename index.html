@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אפליקציית בריאות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #764ba2;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 5px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #333;
+            min-width: 50px;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"],
+        input[type="date"],
+        input[type="time"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            direction: rtl;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-right: 3px solid #667eea;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .item-detail {
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .delete-btn {
+            background: #ff6b6b !important;
+            padding: 8px 15px !important;
+            font-size: 12px !important;
+            width: auto !important;
+            margin-top: 8px !important;
+            display: inline-block !important;
+        }
+
+        .delete-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4) !important;
+            background: #ff5252 !important;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .photo-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .photo-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .photo-info {
+            padding: 12px;
+        }
+
+        .photo-note {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .photo-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .ai-button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .ai-quick-btn {
+            background: #667eea !important;
+            padding: 10px !important;
+            font-size: 12px !important;
+            border-radius: 5px !important;
+        }
+
+        .ai-quick-btn:active {
+            transform: scale(0.95) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 בריאות וכושר</h1>
+            <p>עקוב אחרי הדרך שלך</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
+            <button class="tab-btn" onclick="switchTab(event, 'photos')">📸 תמונות</button>
+            <button class="tab-btn" onclick="switchTab(event, 'menu')">🍽️ תפריט</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
+            <button class="tab-btn" onclick="switchTab(event, 'weight')">⚖️ משקל</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tasks')">✅ משימות</button>
+        </div>
+
+        <div class="content">
+            <!-- AI Assistant Tab -->
+            <div id="ai" class="tab-content active">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 20px;">🤖 עוזר בריאות</h2>
+
+                <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-right: 3px solid #667eea;">
+                    <p style="color: #333; line-height: 1.6; font-size: 14px;">
+                        👋 שלום! אני עוזר בריאות שלך. בחר נושא או שאל שאלה:
+                    </p>
+                </div>
+
+                <div class="ai-button-group">
+                    <button class="ai-quick-btn" onclick="openAI('תן לי תכנית בריאות לשבוע')">💪 בריאות</button>
+                    <button class="ai-quick-btn" onclick="openAI('עצות להורדת משקל')">⚖️ משקל</button>
+                    <button class="ai-quick-btn" onclick="openAI('רעיונות למתכונים בריאים')">🍽️ מתכונים</button>
+                    <button class="ai-quick-btn" onclick="openAI('תכנית תרגילים')">🏃 תרגילים</button>
+                </div>
+
+                <div style="border-top: 2px solid #ddd; padding-top: 15px; margin-top: 15px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">או שאל שאלה משלך:</label>
+                    <input type="text" id="aiQuestion" placeholder="שאל אותי משהו..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; direction: rtl;">
+                    <button onclick="openAI(document.getElementById('aiQuestion').value)" style="padding: 12px;">🚀 שלח</button>
+                </div>
+
+                <div id="aiResponse" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Photos Tab -->
+            <div id="photos" class="tab-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <button onclick="document.getElementById('cameraInput').click()" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);">📷 צלם תמונה</button>
+                    <button onclick="document.getElementById('photoInput').click()" style="background: linear-gradient(135deg, #2196f3 0%, #0b7dda 100%);">📁 בחר מהגלריה</button>
+                </div>
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+                <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                <div class="input-group">
+                    <label>הערה על התמונה:</label>
+                    <input type="text" id="photoNote" placeholder="רשום הערה...">
+                </div>
+                <button onclick="addPhoto()">💾 שמור תמונה</button>
+                <div id="photosList"></div>
+            </div>
+
+            <!-- Menu Tab -->
+            <div id="menu" class="tab-content">
+                <div class="input-group">
+                    <label>שם המנה:</label>
+                    <input type="text" id="menuName" placeholder="לדוגמה: עוף צלוי">
+                </div>
+                <div class="input-group">
+                    <label>קלוריות:</label>
+                    <input type="number" id="menuCal" placeholder="0">
+                </div>
+                <div class="input-group">
+                    <label>קטגוריה:</label>
+                    <select id="menuCat">
+                        <option value="">בחר קטגוריה</option>
+                        <option value="בשר">🥩 בשר</option>
+                        <option value="דגים">🐟 דגים</option>
+                        <option value="ירקות">🥬 ירקות</option>
+                        <option value="פרות">🍎 פרות</option>
+                        <option value="קרבוהידרטים">🍞 קרבוהידרטים</option>
+                        <option value="אחר">🔄 אחר</option>
+                    </select>
+                </div>
+                <button onclick="addMenuItem()">🍽️ הוסף לתפריט</button>
+                <div id="menuList"></div>
+            </div>
+
+            <!-- Tips Tab -->
+            <div id="tips" class="tab-content">
+                <button onclick="generateTip()">💡 קבל טיפ חדש</button>
+                <div id="tipsList"></div>
+            </div>
+
+            <!-- Weight Tab -->
+            <div id="weight" class="tab-content">
+                <div class="stats" id="weightStats"></div>
+                <div class="input-group">
+                    <label>משקל (ק"ג):</label>
+                    <input type="number" id="weightValue" placeholder="0.0" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>תאריך ושעה:</label>
+                    <input type="datetime-local" id="weightDate">
+                </div>
+                <button onclick="addWeight()">⚖️ שמור משקל</button>
+                <div id="weightList"></div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div id="tasks" class="tab-content">
+                <div class="input-group">
+                    <label>משימה חדשה:</label>
+                    <input type="text" id="taskName" placeholder="לדוגמה: הולכה 30 דקות">
+                </div>
+                <button onclick="addTask()">✅ הוסף משימה</button>
+                <div id="tasksList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DATA_KEY = 'health-pro-v3';
+        const TIPS = [
+            '🚶 הליכה 30 דקות ביום היא טובה כמו סופרגיבור!',
+            '💧 שתה 8 כוסות מים ביום להישאר מחוברת.',
+            '🥗 אכול יותר ירקות בכל ארוחה.',
+            '😴 שינה 7-8 שעות בלילה חיוני לבריאות.',
+            '🏃 אימון 30 דקות ביום משפר את הבריאות.',
+            '🧘 מדיטציה 10 דקות ביום מורידה את הלחץ.',
+            '🍎 תפוח ביום מעבר לרופא!',
+            '🙏 חיוך הוא התרופה הטובה ביותר.'
+        ];
+
+        function getData() {
+            const data = localStorage.getItem(DATA_KEY);
+            return data ? JSON.parse(data) : {
+                photos: [],
+                menu: [],
+                weights: [],
+                tasks: [],
+                aiTips: []
+            };
+        }
+
+        function saveData(data) {
+            localStorage.setItem(DATA_KEY, JSON.stringify(data));
+        }
+
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'weight') displayWeight();
+            else if (tabName === 'photos') displayPhotos();
+            else if (tabName === 'menu') displayMenu();
+            else if (tabName === 'tasks') displayTasks();
+            else if (tabName === 'tips') displayTips();
+        }
+
+        function addPhoto() {
+            const cameraInput = document.getElementById('cameraInput');
+            const fileInput = document.getElementById('photoInput');
+            const note = document.getElementById('photoNote').value;
+            let input = null;
+
+            if (cameraInput.files.length > 0) {
+                input = cameraInput;
+            } else if (fileInput.files.length > 0) {
+                input = fileInput;
+            }
+
+            if (!input) {
+                alert('בחר או צלם תמונה בבקשה');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = getData();
+                data.photos.push({
+                    image: e.target.result,
+                    note: note,
+                    date: new Date().toLocaleString('he-IL')
+                });
+                saveData(data);
+                document.getElementById('photoNote').value = '';
+                cameraInput.value = '';
+                fileInput.value = '';
+                displayPhotos();
+                alert('תמונה נשמרה!');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function displayPhotos() {
+            const data = getData();
+            const list = document.getElementById('photosList');
+
+            if (data.photos.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📸</div><p>אין תמונות עדיין</p></div>';
+                return;
+            }
+
+            list.innerHTML = data.photos.map((photo, i) => `
+                <div class="photo-item">
+                    <img src="${photo.image}" class="photo-image">
+                    <div class="photo-info">
+                        <div class="photo-note">${photo.note || 'ללא הערה'}</div>
+                        <div class="photo-date">${photo.date}</div>
+                        <button class="delete-btn" onclick="deletePhoto(${i}); event.stopPropagation();">🗑️ מחק</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deletePhoto(index) {
+            const data = getData();
+            data.photos.splice(index, 1);
+            saveData(data);
+            displayPhotos();
+        }
+
+        function addMenuItem() {
+            const name = document.getElementById('menuName').value;
+            const cal = document.getElementById('menuCal').value;
+            const cat = document.getElementById('menuCat').value;
+
+            if (!name || !cal || !cat) {
+                alert('מלא את כל השדות');
+                return;
+            }
+
+            const data = getData();
+            data.menu.push({
+                name: name,
+                cal: cal,
+                cat: cat,
+                date: new Date().toLocaleString('he-IL')
+            });
+            saveData(data);
+            document.getElementById('menuName').value = '';
+            document.getElementById('menuCal').value = '';
+            document.getElementById('menuCat').value = '';
+            displayMenu();
+        }
+
+        function displayMenu() {
+            const data = getData();
+            const list = document.getElementById('menuList');
+
+            if (data.menu.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽️</div><p>אין פריטים בתפריט</p></div>';
+                return;
+            }
+
+            list.innerHTML = data.menu.map((item, i) => `
+                <div class="item">
+                    <div class="item-header">
+                        <span class="item-title">${item.name}</span>
+                        <span class="item-date">${item.cat}</span>
+                    </div>
+                    <div class="item-detail">📊 ${item.cal} קלוריות</div>
+                    <button class="delete-btn" onclick="deleteMenuItem(${i}); event.stopPropagation();">🗑️ מחק</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteMenuItem(index) {
+            const data = getData();
+            data.menu.splice(index, 1);
+            saveData(data);
+            displayMenu();
+        }
+
+        function generateTip() {
+            const data = getData();
+            const randomTip = TIPS[Math.floor(Math.random() * TIPS.length)];
+            data.aiTips.push({
+                tip: randomTip,
+                date: new Date().toLocaleString('he-IL')
+            });
+            saveData(data);
+            displayTips();
+        }
+
+        function displayTips() {
+            const data = getData();
+            const list = document.getElementById('tipsList');
+
+            if (data.aiTips.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💡</div><p>לחץ על הכפתור לקבל טיפ</p></div>';
+                return;
+            }
+
+            list.innerHTML = data.aiTips.map((tip, i) => `
+                <div class="item">
+                    <div class="item-detail">${tip.tip}</div>
+                    <div class="item-date">${tip.date}</div>
+                    <button class="delete-btn" onclick="deleteTip(${i}); event.stopPropagation();">🗑️ מחק</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteTip(index) {
+            const data = getData();
+            data.aiTips.splice(index, 1);
+            saveData(data);
+            displayTips();
+        }
+
+        function addWeight() {
+            const value = document.getElementById('weightValue').value;
+            const date = document.getElementById('weightDate').value;
+
+            if (!value) {
+                alert('הכנס משקל');
+                return;
+            }
+
+            const data = getData();
+            const dateObj = date ? new Date(date) : new Date();
+            data.weights.push({
+                val: value,
+                time: dateObj.toLocaleString('he-IL')
+            });
+            saveData(data);
+            document.getElementById('weightValue').value = '';
+            document.getElementById('weightDate').value = '';
+            displayWeight();
+        }
+
+        function displayWeight() {
+            const data = getData();
+            const list = document.getElementById('weightList');
+            const statsDiv = document.getElementById('weightStats');
+
+            if (data.weights.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚖️</div><p>אין נתוני משקל עדיין</p></div>';
+                statsDiv.innerHTML = '';
+                return;
+            }
+
+            const weights = data.weights.map(w => parseFloat(w.val));
+            const latest = weights[weights.length - 1];
+            const avg = (weights.reduce((a, b) => a + b) / weights.length).toFixed(1);
+
+            statsDiv.innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-value">${latest}</div>
+                    <div class="stat-label">משקל אחרון</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${avg}</div>
+                    <div class="stat-label">ממוצע</div>
+                </div>
+            `;
+
+            list.innerHTML = data.weights.map((weight, i) => `
+                <div class="item">
+                    <div class="item-header">
+                        <span class="item-title">⚖️ ${weight.val} ק"ג</span>
+                        <span class="item-date">${weight.time}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteWeight(${i}); event.stopPropagation();">🗑️ מחק</button>
+                </div>
+            `).reverse().join('');
+        }
+
+        function deleteWeight(index) {
+            const data = getData();
+            data.weights.splice(index, 1);
+            saveData(data);
+            displayWeight();
+        }
+
+        function addTask() {
+            const name = document.getElementById('taskName').value;
+
+            if (!name) {
+                alert('הכנס שם משימה');
+                return;
+            }
+
+            const data = getData();
+            data.tasks.push({
+                name: name,
+                completed: false,
+                date: new Date().toLocaleString('he-IL')
+            });
+            saveData(data);
+            document.getElementById('taskName').value = '';
+            displayTasks();
+        }
+
+        function displayTasks() {
+            const data = getData();
+            const list = document.getElementById('tasksList');
+
+            if (data.tasks.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><p>אין משימות עדיין</p></div>';
+                return;
+            }
+
+            list.innerHTML = data.tasks.map((task, i) => `
+                <div class="item ${task.completed ? 'completed' : ''}">
+                    <div class="item-header">
+                        <div class="checkbox-container">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})">
+                            <span class="item-title">${task.name}</span>
+                        </div>
+                    </div>
+                    <div class="item-date">${task.date}</div>
+                    <button class="delete-btn" onclick="deleteTask(${i}); event.stopPropagation();">🗑️ מחק</button>
+                </div>
+            `).join('');
+        }
+
+        function toggleTask(index) {
+            const data = getData();
+            data.tasks[index].completed = !data.tasks[index].completed;
+            saveData(data);
+            displayTasks();
+        }
+
+        function deleteTask(index) {
+            const data = getData();
+            data.tasks.splice(index, 1);
+            saveData(data);
+            displayTasks();
+        }
+
+        const aiResponses = {
+            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ببטיות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
+            'בריאות': '💪 תכנית בריאות\n\n1. פעילות: הליכה 30 דקות ביום\n2. תזונה: ירקות, פרות, חלבון\n3. שינה: 7-8 שעות בלילה\n4. מים: 8 כוסות ביום\n5. עקוב אחרי ההתקדמות!',
+            'מתכונים': '🍽️ מתכונים בריאים\n\n• סלט ירקות עם לימון\n• עוף בתנור עם ירקות\n• דגים צלויים עם אורז חום\n• ביצים עם שום\n• חומוס עם סלט\n• סוויטי עם דגנים\n\n💡 הכן ארוחות בראשון!',
+            'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה',
+            'כוח': '🏋️ תרגילי כוח בבית\n\n• סקוטים: 15 חזרות\n• דחיפות: 10 חזרות\n• כפיפות: 15 חזרות\n• פלנק: 30 שניות\n• ריצה: 1 דקה\n\n3 סיבובים, 2-3 פעמים בשבוע',
+            'שינה': '😴 שנת איכות\n\n✓ השכם בשעה קבועה\n✓ חדר אפל וקר\n✓ הימנע מטלפון לפני שינה\n✓ חלב חם או תה\n✓ קרא ספר\n✓ 7-8 שעות שינה',
+            'מים': '💧 שתיית מים\n\n🎯 יעד: 8 כוסות ביום\n\n✓ משפר בריאות\n✓ עוזר להוריד משקל\n✓ משפר את העור\n✓ מגביר אנרגיה\n✓ מנקה את הגוף',
+            'ספורט': '⚽ פעילות ספורטיבית\n\n• ריצה: שריפת קלוריות\n• שחייה: שרירים מלא\n• אופניים: כושר\n• כדורגל: צימוד חברתי\n• טנדור: דיוק וגמישות'
+        };
+
+        function openAI(question) {
+            if (!question || question.trim() === '') {
+                alert('בבקשה שאל שאלה');
+                return;
+            }
+
+            const responseDiv = document.getElementById('aiResponse');
+            responseDiv.innerHTML = '<div class="item"><p style="color: #999;">⏳ אני חושב על התשובה...</p></div>';
+
+            let response = null;
+            for (let [keyword, answer] of Object.entries(aiResponses)) {
+                if (question.includes(keyword)) {
+                    response = answer;
+                    break;
+                }
+            }
+
+            if (!response) {
+                response = '👋 שלום! אני יכול לעזור לך עם:\n• משקל וברייאות\n• מתכונים\n• תרגילים\n• שנה\n• מים\n\nנסה לשאול על אחד מהנושאים!';
+            }
+
+            setTimeout(() => {
+                responseDiv.innerHTML = `
+                    <div class="item" style="background: #e8f5e9; border-right-color: #4caf50;">
+                        <div style="white-space: pre-wrap; line-height: 1.8; color: #2e7d32; font-size: 14px; font-weight: 500;">${response}</div>
+                    </div>
+                `;
+                document.getElementById('aiQuestion').value = '';
+            }, 800);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            displayPhotos();
+            displayMenu();
+            displayTips();
+            displayWeight();
+            displayTasks();
+
+            // Set current datetime as default
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('weightDate').value = now.toISOString().slice(0, 16);
+        });
+    </script>
+</body>
+</html>
