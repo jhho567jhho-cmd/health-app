@@ -455,7 +455,7 @@
     </div>
 
     <script>
-        const DATA_KEY = 'health-app-data-v4';
+        const DATA_KEY = 'health-app-data-v5';
         const TIPS = [
             '🚶 הליכה 30 דקות ביום היא טובה כמו סופרגיבור!',
             '💧 שתה 8 כוסות מים ביום להישאר מחוברת.',
@@ -566,9 +566,9 @@
                     let width = img.width;
                     let height = img.height;
 
-                    // הקטן את התמונה אם היא גדולה מדי
-                    const maxWidth = 800;
-                    const maxHeight = 800;
+                    // הקטן את התמונה לגודל קטן יותר (500x500)
+                    const maxWidth = 500;
+                    const maxHeight = 500;
                     if (width > height) {
                         if (width > maxWidth) {
                             height = Math.round(height * maxWidth / width);
@@ -586,8 +586,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // דחס את התמונה בקוואליטי נמוכה יותר
-                    const compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    // דחס את התמונה בקוואליטי נמוך (30%) כדי לשמור יותר תמונות
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.3);
                     callback(compressedData);
                 };
                 img.src = e.target.result;
