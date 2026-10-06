@@ -539,6 +539,19 @@
             }
         });
 
+        function addPhoto() {
+            const cameraInput = document.getElementById('cameraInput');
+            const fileInput = document.getElementById('photoInput');
+
+            if (cameraInput.files.length > 0) {
+                processPhoto(cameraInput.files[0]);
+            } else if (fileInput.files.length > 0) {
+                processPhoto(fileInput.files[0]);
+            } else {
+                alert('בחר או צלם תמונה בבקשה');
+            }
+        }
+
         function processPhoto(file) {
             if (!file.type.startsWith('image/')) {
                 alert('בחר קובץ תמונה בבקשה');
