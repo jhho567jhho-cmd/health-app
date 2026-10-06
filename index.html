@@ -330,8 +330,7 @@
         </div>
 
         <div class="tabs" style="margin: 10px;">
-            <button class="tab-btn active" onclick="switchTab(event, 'notes')">📝 סיכרונות משותפות</button>
-            <button class="tab-btn" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
             <button class="tab-btn" onclick="switchTab(event, 'photos')">📸 תמונות</button>
             <button class="tab-btn" onclick="switchTab(event, 'menu')">🍽️ תפריט</button>
             <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
@@ -340,24 +339,8 @@
         </div>
 
         <div class="content">
-            <!-- Shared Notes Tab (NEW) -->
-            <div id="notes" class="tab-content active">
-                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">📝 סיכרונות משותפות</h2>
-
-                <div class="input-group">
-                    <label>כתוב סיכרון חדש:</label>
-                    <textarea id="noteInput" placeholder="כתוב הערה או סיכרון..." rows="4" style="resize: vertical;"></textarea>
-                </div>
-                <button onclick="addSharedNote()">💾 שמור סיכרון</button>
-
-                <div style="margin-top: 20px;">
-                    <h3 style="color: #333; margin-bottom: 10px;">סיכרונות אחרונים:</h3>
-                    <div id="notesList"></div>
-                </div>
-            </div>
-
             <!-- AI Assistant Tab -->
-            <div id="ai" class="tab-content">
+            <div id="ai" class="tab-content active">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
                     <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
