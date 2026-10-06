@@ -552,31 +552,70 @@
             }
         }
 
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // הקטן את התמונה אם היא גדולה מדי
+                    const maxWidth = 800;
+                    const maxHeight = 800;
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round(height * maxWidth / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round(width * maxHeight / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // דחס את התמונה בקוואליטי נמוכה יותר
+                    const compressedData = canvas.toDataURL('image/jpeg', 0.6);
+                    callback(compressedData);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function processPhoto(file) {
             if (!file.type.startsWith('image/')) {
                 alert('בחר קובץ תמונה בבקשה');
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            compressImage(file, function(compressedImage) {
                 const data = getData();
                 data.photos.push({
-                    image: e.target.result,
+                    image: compressedImage,
                     note: document.getElementById('photoNote').value || 'ללא הערה',
                     date: new Date().toLocaleString('he-IL')
                 });
-                saveData(data);
-                document.getElementById('photoNote').value = '';
-                document.getElementById('cameraInput').value = '';
-                document.getElementById('photoInput').value = '';
-                displayPhotos();
-                showSuccess('✅ תמונה נשמרה בהצלחה!');
-            };
-            reader.onerror = function() {
-                alert('שגיאה בקריאת התמונה');
-            };
-            reader.readAsDataURL(file);
+
+                try {
+                    saveData(data);
+                    document.getElementById('photoNote').value = '';
+                    document.getElementById('cameraInput').value = '';
+                    document.getElementById('photoInput').value = '';
+                    displayPhotos();
+                    showSuccess('✅ תמונה נשמרה בהצלחה!');
+                } catch (e) {
+                    showError('❌ לא מספיק מקום לשמירת תמונות. נסה להסיר כמה תמונות ישנות.');
+                    console.error('Error saving photo:', e);
+                }
+            });
         }
 
         function displayPhotos() {
