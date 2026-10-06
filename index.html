@@ -387,8 +387,6 @@
                     <button onclick="triggerCameraInput()" style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);">📷 צלם תמונה</button>
                     <button onclick="triggerPhotoInput()" style="background: linear-gradient(135deg, #2196f3 0%, #0b7dda 100%);">📁 בחר תמונה</button>
                 </div>
-                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
-                <input type="file" id="photoInput" accept="image/*" style="display: none;">
                 <div class="input-group">
                     <label>הערה על התמונה:</label>
                     <input type="text" id="photoNote" placeholder="רשום הערה...">
@@ -519,37 +517,44 @@
             else if (tabName === 'tips') displayTips();
         }
 
+        let selectedPhotoFile = null;
+
         function triggerCameraInput() {
-            document.getElementById('cameraInput').click();
+            // יצירת file input חדש כל פעם כדי שיעבוד מחדש
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'environment';
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    selectedPhotoFile = e.target.files[0];
+                    showSuccess('✅ תמונה נבחרה! הוסף הערה והקלק שמור');
+                }
+            };
+            input.click();
         }
 
         function triggerPhotoInput() {
-            document.getElementById('photoInput').click();
+            // יצירת file input חדש כל פעם כדי שיעבוד מחדש
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    selectedPhotoFile = e.target.files[0];
+                    showSuccess('✅ תמונה נבחרה! הוסף הערה והקלק שמור');
+                }
+            };
+            input.click();
         }
 
-        document.getElementById('cameraInput').addEventListener('change', function() {
-            if (this.files.length > 0) {
-                processPhoto(this.files[0]);
-            }
-        });
-
-        document.getElementById('photoInput').addEventListener('change', function() {
-            if (this.files.length > 0) {
-                processPhoto(this.files[0]);
-            }
-        });
-
         function addPhoto() {
-            const cameraInput = document.getElementById('cameraInput');
-            const fileInput = document.getElementById('photoInput');
-
-            if (cameraInput.files.length > 0) {
-                processPhoto(cameraInput.files[0]);
-            } else if (fileInput.files.length > 0) {
-                processPhoto(fileInput.files[0]);
-            } else {
-                alert('בחר או צלם תמונה בבקשה');
+            if (!selectedPhotoFile) {
+                showError('⚠️ בחר או צלם תמונה תחילה');
+                return;
             }
+            processPhoto(selectedPhotoFile);
+            selectedPhotoFile = null;
         }
 
         function compressImage(file, callback) {
@@ -607,8 +612,6 @@
                 try {
                     saveData(data);
                     document.getElementById('photoNote').value = '';
-                    document.getElementById('cameraInput').value = '';
-                    document.getElementById('photoInput').value = '';
                     displayPhotos();
                     showSuccess('✅ תמונה נשמרה בהצלחה!');
                 } catch (e) {
