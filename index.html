@@ -349,6 +349,27 @@
         .shop-summary { font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
         .shop-group-title { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #667eea; background: #f0f2fb; padding: 6px 10px; border-radius: 8px; margin: 12px 0 2px; }
 
+        .sheet { position: fixed; inset: 0; z-index: 50; background: #f5f6fb; overflow-y: auto; transform: translateY(100%); transition: transform 0.25s ease; }
+        .sheet.open { transform: none; }
+        .sheet-head { position: sticky; top: 0; z-index: 1; background: #f5f6fb; display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid #e7e9f2; }
+        .sheet-head h2 { font-size: 22px; }
+        .sheet-close { width: auto; background: none; color: #333; font-size: 24px; padding: 4px 8px; box-shadow: none !important; transform: none !important; }
+        .sheet-body { max-width: 520px; margin: 0 auto; padding: 16px 20px 40px; }
+        .sheet label { margin: 18px 0 8px; color: #6b7080; font-size: 14px; }
+        .sheet .field { width: 100%; padding: 14px 16px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; font-size: 16px; font-family: inherit; direction: rtl; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .type-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 8px; background: white; color: #555; border: 2px solid #e7e9f2; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: none !important; transform: none !important; }
+        .type-tile b { font-size: 34px; }
+        .type-tile small { font-size: 12px; font-weight: 400; color: #8a90a2; }
+        .type-tile.active { border-color: #667eea; background: #f0f2ff; color: #667eea; }
+        .type-tile:disabled { opacity: 0.4; }
+        .sheet-submit { margin-top: 26px; padding: 16px; font-size: 18px; border-radius: 16px; }
+        .sheet-delete { margin-top: 10px; background: none; color: #d64545; box-shadow: none !important; transform: none !important; }
+        .new-task-btn { padding: 14px; font-size: 16px; border-radius: 14px; margin-bottom: 6px; }
+        .row-main { cursor: pointer; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 8px; background: #fff1d6; color: #b26a00; }
+
     </style>
 </head>
 <body>
@@ -537,18 +558,7 @@
             <!-- Tasks Tab -->
             <div id="tasks" class="tab-content">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">✅ משימות</h2>
-                <div class="input-group">
-                    <input type="text" id="taskName" placeholder="משימה חדשה..." onkeydown="if (event.key === 'Enter') addTask()">
-                </div>
-                <div class="form-row">
-                    <input type="date" id="taskDue">
-                    <select id="taskWho">
-                        <option value="both">👫 שנינו</option>
-                        <option value="chaim">👨 חיים</option>
-                        <option value="devorah">👩 דבורה</option>
-                    </select>
-                </div>
-                <button onclick="addTask()">✅ הוסף משימה</button>
+                <button class="new-task-btn" onclick="openTaskSheet(null)">+ משימה חדשה</button>
                 <div id="tasksList"></div>
             </div>
 
@@ -567,6 +577,7 @@
                     <input type="text" id="calTask" placeholder="הוסף משימה ליום הזה..." onkeydown="if (event.key === 'Enter') addCalendarTask()">
                     <button onclick="addCalendarTask()">+ הוסף</button>
                 </div>
+                <button class="home-action" onclick="openTaskSheet(null, calSelected)">📝 משימה עם שעה ופרטים ליום הזה</button>
             </div>
 
             <!-- Shopping Tab -->
@@ -590,6 +601,56 @@
         <button class="nav-btn" data-nav="shopping" onclick="showSection('shopping', 'shopping')"><b>🛒</b>קניות</button>
         <button class="nav-btn" data-nav="more" onclick="showSection('more', 'more')"><b>☰</b>עוד</button>
     </nav>
+
+    <!-- New / edit task -->
+    <div id="taskSheet" class="sheet">
+        <div class="sheet-head">
+            <h2 id="tsHeading">משימה חדשה</h2>
+            <button class="sheet-close" onclick="closeTaskSheet()">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="type-tiles">
+                <button class="type-tile" id="tsShared" onclick="setTaskVisibility('shared')"><b>👫</b>משותפת<small>שנינו רואים</small></button>
+                <button class="type-tile" id="tsPrivate" onclick="setTaskVisibility('private')"><b>🔒</b>פרטית<small>רק אני רואה</small></button>
+            </div>
+
+            <label>מה צריך לעשות</label>
+            <input class="field" type="text" id="tsTitle" placeholder="שם המשימה">
+            <div class="chips" id="tsTitleChips"></div>
+
+            <label>תאריך</label>
+            <input class="field" type="date" id="tsDue">
+
+            <div class="field-row">
+                <div>
+                    <label>משעה</label>
+                    <input class="field" type="time" id="tsStart">
+                </div>
+                <div>
+                    <label>עד שעה</label>
+                    <input class="field" type="time" id="tsEnd">
+                </div>
+            </div>
+
+            <div id="tsWhoBlock">
+                <label>על מי</label>
+                <div class="chips" id="tsWhoChips"></div>
+            </div>
+
+            <label>סטטוס</label>
+            <select class="field" id="tsStatus">
+                <option value="pending">⏳ ממתין</option>
+                <option value="in_progress">🔄 בביצוע</option>
+                <option value="done">✓ בוצע</option>
+            </select>
+
+            <label>הערות</label>
+            <textarea class="field" id="tsNotes" rows="3" placeholder="לא חובה"></textarea>
+
+            <button class="sheet-submit" id="tsSubmit" onclick="saveTaskSheet()">הוסף משימה</button>
+            <button class="sheet-delete" id="tsDelete" onclick="deleteFromSheet()">🗑️ מחק משימה</button>
+        </div>
+    </div>
 
     <script src="vendor/supabase.js"></script>
     <script>
@@ -643,7 +704,9 @@
         const CLOUD_TABLES = {
             task_items: ['tasks', 'created_at', r => ({
                 id: r.id, name: r.title, completed: r.done, due: r.due_date || '', who: memberKey(r.assigned_to),
-                doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL')
+                doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL'),
+                isPrivate: r.is_private, createdBy: r.created_by, status: r.status || (r.done ? 'done' : 'pending'),
+                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || ''
             })],
             shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done })],
             weight_entries: ['weights', 'measured_at', r => ({
@@ -797,7 +860,6 @@
             displayTips();
             refreshViews();
             initWeightDate();
-            document.getElementById('taskDue').value = isoDay(new Date());
             showSection('home', 'home');
         }
 
@@ -875,14 +937,129 @@
 
         function taskRow(t, showDelete) {
             const overdue = !t.completed && t.due && t.due < isoDay(new Date());
-            const meta = [t.due ? formatDay(t.due) : '', WHO[t.who] || ''].filter(Boolean).join(' · ');
+            const time = t.start ? (t.end ? `${t.start}–${t.end}` : t.start) : '';
+            const owner = t.isPrivate ? '🔒 פרטי' : (WHO[t.who] || '');
+            const meta = [t.due ? formatDay(t.due) : '', time, owner].filter(Boolean).join(' · ');
+            const badge = !t.completed && t.status === 'in_progress' ? ' <i class="badge">בביצוע</i>' : '';
             return `
                 <div class="home-row ${t.completed ? 'done' : ''} ${overdue ? 'overdue' : ''}">
                     <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${t.i})">${t.completed ? '✓' : ''}</button>
-                    <div class="row-main"><span>${t.name}</span>${meta ? `<small>${meta}</small>` : ''}</div>
+                    <div class="row-main" onclick="openTaskSheet(${t.i})"><span>${t.name}${badge}</span>${meta ? `<small>${meta}</small>` : ''}</div>
                     ${showDelete ? `<button class="icon-btn" onclick="deleteTask(${t.i})">🗑️</button>` : ''}
                 </div>
             `;
+        }
+
+        // Tasks on the same day are listed by start time; untimed ones last.
+        function byTime(a, b) {
+            return (a.start || '99:99').localeCompare(b.start || '99:99');
+        }
+
+        // New / edit task sheet
+        const QUICK_TASKS = ['קניות', 'ניקיון הבית', 'כביסה', 'בישול', 'תור לרופא', 'אימון', 'הליכה', 'תשלום חשבונות', 'להתקשר', 'סידורים'];
+        let editingTask = null;
+        let sheetVisibility = 'shared';
+        let sheetWho = 'both';
+
+        function openTaskSheet(index, presetDue) {
+            editingTask = index === null || index === undefined ? null : index;
+            const t = editingTask === null ? null : cloud.tasks[editingTask];
+            if (t && !t.id) return;
+            document.getElementById('tsHeading').textContent = t ? 'עריכת משימה' : 'משימה חדשה';
+            document.getElementById('tsSubmit').textContent = t ? 'שמור שינויים' : 'הוסף משימה';
+            document.getElementById('tsDelete').style.display = t ? 'block' : 'none';
+            document.getElementById('tsTitle').value = t ? t.name : '';
+            document.getElementById('tsDue').value = t ? t.due : (presetDue || isoDay(new Date()));
+            document.getElementById('tsStart').value = t ? t.start : '';
+            document.getElementById('tsEnd').value = t ? t.end : '';
+            document.getElementById('tsStatus').value = t ? t.status : 'pending';
+            document.getElementById('tsNotes').value = t ? t.notes : '';
+            // Only the author can make a task private (the database enforces this too).
+            document.getElementById('tsPrivate').disabled = !!t && t.createdBy !== userId;
+            document.getElementById('tsTitleChips').innerHTML = QUICK_TASKS
+                .map(q => `<button class="chip" onclick="document.getElementById('tsTitle').value = '${q}'">${q}</button>`).join('');
+            sheetWho = t ? t.who : 'both';
+            setTaskVisibility(t && t.isPrivate ? 'private' : 'shared');
+            document.getElementById('taskSheet').classList.add('open');
+            document.getElementById('taskSheet').scrollTop = 0;
+        }
+
+        function closeTaskSheet() {
+            document.getElementById('taskSheet').classList.remove('open');
+            editingTask = null;
+        }
+
+        function setTaskVisibility(visibility) {
+            sheetVisibility = visibility;
+            document.getElementById('tsShared').classList.toggle('active', visibility === 'shared');
+            document.getElementById('tsPrivate').classList.toggle('active', visibility === 'private');
+            document.getElementById('tsWhoBlock').style.display = visibility === 'private' ? 'none' : 'block';
+            renderWhoChips();
+        }
+
+        function setTaskWho(who) {
+            sheetWho = who;
+            renderWhoChips();
+        }
+
+        function renderWhoChips() {
+            document.getElementById('tsWhoChips').innerHTML = ['both', 'chaim', 'devorah']
+                .map(key => `<button class="chip ${sheetWho === key ? 'on' : ''}" onclick="setTaskWho('${key}')">${WHO[key]}</button>`).join('');
+        }
+
+        function saveTaskSheet() {
+            const title = document.getElementById('tsTitle').value.trim();
+            if (!title) {
+                document.getElementById('tsTitle').focus();
+                return;
+            }
+            const t = editingTask === null ? null : cloud.tasks[editingTask];
+            const isPrivate = sheetVisibility === 'private';
+            const status = document.getElementById('tsStatus').value;
+            const local = {
+                name: title,
+                due: document.getElementById('tsDue').value,
+                start: document.getElementById('tsStart').value,
+                end: document.getElementById('tsEnd').value,
+                notes: document.getElementById('tsNotes').value.trim(),
+                isPrivate: isPrivate,
+                who: isPrivate ? currentUser : sheetWho,
+                status: status,
+                completed: status === 'done'
+            };
+            const row = {
+                title: local.name,
+                due_date: local.due || null,
+                start_time: local.start || null,
+                end_time: local.end || null,
+                notes: local.notes || null,
+                is_private: isPrivate,
+                assigned_to: isPrivate ? userId : memberUserId(sheetWho),
+                status: status,
+                done: local.completed
+            };
+            if (t) {
+                if (local.completed !== t.completed) {
+                    row.done_at = local.completed ? new Date().toISOString() : null;
+                    local.doneDay = local.completed ? isoDay(new Date()) : '';
+                }
+                Object.assign(t, local);
+                cloudWrite(sb.from('task_items').update(row).eq('id', t.id), 'task_items');
+            } else {
+                if (local.completed) row.done_at = new Date().toISOString();
+                cloud.tasks.push({ ...local, createdBy: userId, doneDay: local.completed ? isoDay(new Date()) : '', date: new Date().toLocaleString('he-IL') });
+                cloudWrite(sb.from('task_items').insert({ ...row, couple_id: coupleId, created_by: userId }), 'task_items');
+            }
+            closeTaskSheet();
+            displayTasks();
+            showSuccess(t ? '✅ נשמר!' : '✅ נוסף!');
+        }
+
+        function deleteFromSheet() {
+            if (editingTask === null) return;
+            const index = editingTask;
+            closeTaskSheet();
+            deleteTask(index);
         }
 
         // Calendar
@@ -922,7 +1099,7 @@
             document.getElementById('calGrid').innerHTML = cells;
 
             document.getElementById('calDayTitle').textContent = formatDay(calSelected, true);
-            const dayTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => t.due === calSelected);
+            const dayTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => t.due === calSelected).sort(byTime);
             document.getElementById('calDayList').innerHTML = dayTasks.length
                 ? dayTasks.map(t => taskRow(t, true)).join('')
                 : '<div class="empty-state">אין משימות ביום הזה</div>';
@@ -1091,7 +1268,7 @@
             const isoToday = isoDay(new Date());
             const todays = data.tasks.map((t, i) => ({ ...t, i })).filter(t =>
                 t.completed ? t.doneDay === isoToday : (!t.due || t.due <= isoToday)
-            );
+            ).sort(byTime);
             const done = todays.filter(t => t.completed).length;
             const total = todays.length;
             const pct = total ? Math.round(done / total * 100) : 0;
@@ -1152,7 +1329,7 @@
         }
 
         function createTask(name, due, who) {
-            cloud.tasks.push({ name: name, completed: false, due: due, who: who, doneDay: '', date: new Date().toLocaleString('he-IL') });
+            cloud.tasks.push({ name: name, completed: false, due: due, who: who, doneDay: '', date: new Date().toLocaleString('he-IL'), isPrivate: false, createdBy: userId, status: 'pending', start: '', end: '', notes: '' });
             displayTasks();
             cloudWrite(sb.from('task_items').insert({
                 couple_id: coupleId, created_by: userId, title: name, due_date: due || null, assigned_to: memberUserId(who)
@@ -1424,16 +1601,7 @@
             if (item.id) cloudWrite(sb.from('weight_entries').delete().eq('id', item.id), 'weight_entries');
         }
 
-        function addTask() {
-            const name = document.getElementById('taskName').value.trim();
-            if (!name) {
-                showError('⚠️ הכנס שם');
-                return;
-            }
-            document.getElementById('taskName').value = '';
-            createTask(name, document.getElementById('taskDue').value, document.getElementById('taskWho').value);
-            showSuccess('✅ נוסף!');
-        }
+
 
         function displayTasks() {
             renderHome();
@@ -1448,7 +1616,7 @@
             const items = data.tasks.map((t, i) => ({ ...t, i }));
             const groups = [
                 ['⚠️ באיחור', items.filter(t => !t.completed && t.due && t.due < today)],
-                ['📌 היום', items.filter(t => !t.completed && t.due === today)],
+                ['📌 היום', items.filter(t => !t.completed && t.due === today).sort(byTime)],
                 ['🗓️ בהמשך', items.filter(t => !t.completed && t.due > today).sort((a, b) => a.due.localeCompare(b.due))],
                 ['📋 בלי תאריך', items.filter(t => !t.completed && !t.due)],
                 ['✓ הושלמו', items.filter(t => t.completed)]
@@ -1463,10 +1631,11 @@
             const task = cloud.tasks[index];
             if (!task.id) return;
             task.completed = !task.completed;
+            task.status = task.completed ? 'done' : 'pending';
             task.doneDay = task.completed ? isoDay(new Date()) : '';
             displayTasks();
             cloudWrite(sb.from('task_items').update({
-                done: task.completed, done_at: task.completed ? new Date().toISOString() : null
+                done: task.completed, status: task.status, done_at: task.completed ? new Date().toISOString() : null
             }).eq('id', task.id), 'task_items');
         }
 
