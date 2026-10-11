@@ -186,6 +186,7 @@
         input[type="text"],
         input[type="number"],
         input[type="datetime-local"],
+        input[type="date"],
         textarea,
         select {
             width: 100%;
@@ -312,9 +313,29 @@
 
         .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e7e9f2; justify-content: space-around; padding: 8px 0 12px; z-index: 10; }
         .app-container.active + .bottom-nav { display: flex; }
-        .nav-btn { width: auto; background: none; color: #8a90a2; font-size: 12px; padding: 4px 10px; display: grid; justify-items: center; gap: 2px; box-shadow: none !important; transform: none !important; }
+        .nav-btn { width: auto; background: none; color: #8a90a2; font-size: 12px; padding: 4px 6px; display: grid; justify-items: center; gap: 2px; box-shadow: none !important; transform: none !important; }
         .nav-btn b { font-size: 20px; }
         .nav-btn.active { color: #667eea; font-weight: 700; }
+        .group-title { font-size: 13px; color: #8a90a2; font-weight: 700; margin: 14px 0 4px; }
+        .row-main { flex: 1; display: grid; gap: 2px; }
+        .row-main small { color: #8a90a2; font-size: 12px; }
+        .home-row.overdue .row-main small { color: #d64545; }
+        .icon-btn { width: auto; background: none; padding: 4px; font-size: 16px; box-shadow: none !important; transform: none !important; }
+        .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .form-row > * { flex: 1; }
+        .home-link { width: auto; background: none; color: #667eea; padding: 0; font-size: 12px; font-weight: 600; box-shadow: none !important; transform: none !important; }
+
+        .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .cal-head h2 { font-size: 18px; color: #333; }
+        .cal-head button { width: 40px; padding: 8px 0; }
+        .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .cal-week { font-size: 12px; color: #8a90a2; margin-bottom: 4px; }
+        .cal-day { position: relative; aspect-ratio: 1; padding: 0; border-radius: 10px; background: #f5f6fb; color: #333; font-size: 14px; font-weight: 500; box-shadow: none !important; transform: none !important; }
+        .cal-day.today { border: 2px solid #667eea; }
+        .cal-day.selected { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .cal-day i { position: absolute; bottom: 3px; left: 50%; margin-left: -9px; min-width: 18px; font-style: normal; font-size: 10px; line-height: 14px; background: #ff6b9d; color: white; border-radius: 7px; }
+        .cal-day-title { font-size: 15px; font-weight: 700; margin: 16px 0 6px; }
+
     </style>
 </head>
 <body>
@@ -359,11 +380,20 @@
                 </div>
 
                 <div class="home-card">
-                    <h3>✅ להיום</h3>
+                    <h3>✅ להיום <button class="home-link" onclick="showSection('tasks', 'tasks')">כל המשימות ←</button></h3>
                     <div id="homeTasks"></div>
                     <div class="home-add">
-                        <input type="text" id="homeTask" placeholder="הוסף משימה...">
+                        <input type="text" id="homeTask" placeholder="הוסף משימה להיום..." onkeydown="if (event.key === 'Enter') addHomeTask()">
                         <button onclick="addHomeTask()">+ הוסף</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>🛒 קניות <button class="home-link" onclick="showSection('shopping', 'shopping')" id="homeShopTxt">לרשימה ←</button></h3>
+                    <div id="homeShop"></div>
+                    <div class="home-add">
+                        <input type="text" id="homeShopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('homeShopInput')">
+                        <button onclick="addShopping('homeShopInput')">+ הוסף</button>
                     </div>
                 </div>
 
@@ -383,12 +413,12 @@
                 <div class="home-card">
                     <h3>🍽️ קלוריות היום <small id="homeCalTxt"></small></h3>
                     <div class="bar"><span id="homeCalBar"></span></div>
-                    <button class="home-action" onclick="showSection('menu', 'menu')">+ הוסף ארוחה</button>
+                    <button class="home-action" onclick="showSection('menu', 'home')">+ הוסף ארוחה</button>
                 </div>
 
                 <div class="home-card">
                     <h3>📸 תמונות <small id="homePhotoTxt"></small></h3>
-                    <button class="home-action" onclick="showSection('photos', 'photos')">📷 הוסף תמונה</button>
+                    <button class="home-action" onclick="showSection('photos', 'home')">📷 הוסף תמונה</button>
                 </div>
             </div>
 
@@ -396,9 +426,10 @@
             <div id="more" class="tab-content">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">☰ עוד</h2>
                 <div class="more-list">
-                    <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
+                    <button onclick="showSection('menu', 'more')">🍽️ תפריט וארוחות</button>
+                    <button onclick="showSection('photos', 'more')">📸 תמונות</button>
                     <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
-                    <button onclick="showSection('tasks', 'more')">✅ כל המשימות</button>
+                    <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
                     <button onclick="showSection('tips', 'more')">💡 טיפים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -406,7 +437,7 @@
 
             <!-- AI Assistant Tab -->
             <div id="ai" class="tab-content">
-                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
                     <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
@@ -425,6 +456,7 @@
 
             <!-- Photos Tab -->
             <div id="photos" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <button onclick="triggerCameraInput()">📷 צלם תמונה</button>
                     <button onclick="triggerPhotoInput()">📁 בחר תמונה</button>
@@ -439,6 +471,7 @@
 
             <!-- Menu Tab -->
             <div id="menu" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div class="input-group">
                     <label>שם המנה:</label>
                     <input type="text" id="menuName" placeholder="לדוגמה: עוף צלוי">
@@ -465,14 +498,14 @@
 
             <!-- Tips Tab -->
             <div id="tips" class="tab-content">
-                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <button onclick="generateTip()" style="margin-bottom: 15px;">💡 קבל טיפ חדש</button>
                 <div id="tipsList"></div>
             </div>
 
             <!-- Weight Tab -->
             <div id="weight" class="tab-content">
-                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div class="input-group">
                     <label>משקל (ק"ג):</label>
                     <input type="number" id="weightValue" placeholder="0.0" step="0.1" min="0">
@@ -487,21 +520,56 @@
 
             <!-- Tasks Tab -->
             <div id="tasks" class="tab-content">
-                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">✅ משימות</h2>
                 <div class="input-group">
-                    <label>משימה חדשה:</label>
-                    <input type="text" id="taskName" placeholder="לדוגמה: הולכה 30 דקות">
+                    <input type="text" id="taskName" placeholder="משימה חדשה..." onkeydown="if (event.key === 'Enter') addTask()">
                 </div>
-                <button onclick="addTask()" style="margin-bottom: 15px;">✅ הוסף משימה</button>
+                <div class="form-row">
+                    <input type="date" id="taskDue">
+                    <select id="taskWho">
+                        <option value="both">👫 שנינו</option>
+                        <option value="chaim">👨 חיים</option>
+                        <option value="devorah">👩 דבורה</option>
+                    </select>
+                </div>
+                <button onclick="addTask()">✅ הוסף משימה</button>
                 <div id="tasksList"></div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar" class="tab-content">
+                <div class="cal-head">
+                    <button onclick="moveMonth(-1)">→</button>
+                    <h2 id="calTitle"></h2>
+                    <button onclick="moveMonth(1)">←</button>
+                </div>
+                <div class="cal-week"><div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div></div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="cal-day-title" id="calDayTitle"></div>
+                <div id="calDayList"></div>
+                <div class="home-add">
+                    <input type="text" id="calTask" placeholder="הוסף משימה ליום הזה..." onkeydown="if (event.key === 'Enter') addCalendarTask()">
+                    <button onclick="addCalendarTask()">+ הוסף</button>
+                </div>
+            </div>
+
+            <!-- Shopping Tab -->
+            <div id="shopping" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🛒 רשימת קניות</h2>
+                <div class="home-add" style="margin-bottom: 10px;">
+                    <input type="text" id="shopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('shopInput')">
+                    <button onclick="addShopping('shopInput')">+ הוסף</button>
+                </div>
+                <div id="shoppingList"></div>
             </div>
         </div>
     </div>
 
     <nav class="bottom-nav">
         <button class="nav-btn active" data-nav="home" onclick="showSection('home', 'home')"><b>🏠</b>בית</button>
-        <button class="nav-btn" data-nav="menu" onclick="showSection('menu', 'menu')"><b>🍽️</b>תפריט</button>
-        <button class="nav-btn" data-nav="photos" onclick="showSection('photos', 'photos')"><b>📸</b>תמונות</button>
+        <button class="nav-btn" data-nav="tasks" onclick="showSection('tasks', 'tasks')"><b>✅</b>משימות</button>
+        <button class="nav-btn" data-nav="calendar" onclick="showSection('calendar', 'calendar')"><b>📅</b>לוח שנה</button>
+        <button class="nav-btn" data-nav="shopping" onclick="showSection('shopping', 'shopping')"><b>🛒</b>קניות</button>
         <button class="nav-btn" data-nav="more" onclick="showSection('more', 'more')"><b>☰</b>עוד</button>
     </nav>
 
@@ -538,6 +606,8 @@
             displayWeight();
             displayTasks();
             initWeightDate();
+            displayShopping();
+            document.getElementById('taskDue').value = isoDay(new Date());
             showSection('home', 'home');
         }
 
@@ -558,7 +628,7 @@
         }
 
         function getDefaultData() {
-            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [], water: {} };
+            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [], water: {}, shopping: [] };
         }
 
         function saveData(data) {
@@ -576,11 +646,172 @@
             return new Date().toLocaleDateString('he-IL');
         }
 
+        let currentSection = { id: 'home', nav: 'home' };
+        let previousSection = { id: 'home', nav: 'home' };
+
         function showSection(sectionId, navId) {
+            if (sectionId !== currentSection.id) previousSection = currentSection;
+            currentSection = { id: sectionId, nav: navId };
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.toggle('active', el.dataset.nav === navId));
             document.querySelector('.content').scrollTop = 0;
+        }
+
+        const WHO = { chaim: '👨 חיים', devorah: '👩 דבורה', both: '👫 שנינו' };
+
+        function isoDay(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatDay(iso, long) {
+            const now = new Date();
+            const offsets = { [isoDay(now)]: 'היום' };
+            offsets[isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1))] = 'מחר';
+            offsets[isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))] = 'אתמול';
+            const date = new Date(iso + 'T00:00');
+            const text = date.toLocaleDateString('he-IL', long
+                ? { weekday: 'long', day: 'numeric', month: 'long' }
+                : { weekday: 'short', day: 'numeric', month: 'numeric' });
+            return offsets[iso] ? (long ? `${offsets[iso]}, ${text}` : offsets[iso]) : text;
+        }
+
+        function taskRow(t, showDelete) {
+            const overdue = !t.completed && t.due && t.due < isoDay(new Date());
+            const meta = [t.due ? formatDay(t.due) : '', WHO[t.who] || ''].filter(Boolean).join(' · ');
+            return `
+                <div class="home-row ${t.completed ? 'done' : ''} ${overdue ? 'overdue' : ''}">
+                    <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${t.i})">${t.completed ? '✓' : ''}</button>
+                    <div class="row-main"><span>${t.name}</span>${meta ? `<small>${meta}</small>` : ''}</div>
+                    ${showDelete ? `<button class="icon-btn" onclick="deleteTask(${t.i})">🗑️</button>` : ''}
+                </div>
+            `;
+        }
+
+        // Calendar
+        let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        let calSelected = isoDay(new Date());
+
+        function moveMonth(delta) {
+            calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + delta, 1);
+            renderCalendar();
+        }
+
+        function selectDay(iso) {
+            calSelected = iso;
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const data = getData();
+            const today = isoDay(new Date());
+            const year = calMonth.getFullYear();
+            const month = calMonth.getMonth();
+            document.getElementById('calTitle').textContent = calMonth.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
+
+            const openByDay = {};
+            data.tasks.forEach(t => {
+                if (t.due && !t.completed) openByDay[t.due] = (openByDay[t.due] || 0) + 1;
+            });
+
+            let cells = '';
+            for (let i = 0; i < new Date(year, month, 1).getDay(); i++) cells += '<div></div>';
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const iso = isoDay(new Date(year, month, d));
+                const cls = `cal-day ${iso === today ? 'today' : ''} ${iso === calSelected ? 'selected' : ''}`;
+                cells += `<button class="${cls}" onclick="selectDay('${iso}')">${d}${openByDay[iso] ? `<i>${openByDay[iso]}</i>` : ''}</button>`;
+            }
+            document.getElementById('calGrid').innerHTML = cells;
+
+            document.getElementById('calDayTitle').textContent = formatDay(calSelected, true);
+            const dayTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => t.due === calSelected);
+            document.getElementById('calDayList').innerHTML = dayTasks.length
+                ? dayTasks.map(t => taskRow(t, true)).join('')
+                : '<div class="empty-state">אין משימות ביום הזה</div>';
+        }
+
+        function addCalendarTask() {
+            const input = document.getElementById('calTask');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ הכנס שם');
+                return;
+            }
+            const data = getData();
+            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL'), due: calSelected, who: 'both' });
+            saveData(data);
+            input.value = '';
+            displayTasks();
+        }
+
+        // Shopping list
+        function shoppingRow(item, showDelete) {
+            return `
+                <div class="home-row ${item.done ? 'done' : ''}">
+                    <button class="check ${item.done ? 'on' : ''}" onclick="toggleShopping(${item.i})">${item.done ? '✓' : ''}</button>
+                    <div class="row-main"><span>${item.name}</span></div>
+                    ${showDelete ? `<button class="icon-btn" onclick="deleteShopping(${item.i})">🗑️</button>` : ''}
+                </div>
+            `;
+        }
+
+        function addShopping(inputId) {
+            const input = document.getElementById(inputId);
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ מה לקנות?');
+                return;
+            }
+            const data = getData();
+            data.shopping.push({ name: name, done: false, ts: Date.now() });
+            saveData(data);
+            input.value = '';
+            displayShopping();
+        }
+
+        function toggleShopping(index) {
+            const data = getData();
+            data.shopping[index].done = !data.shopping[index].done;
+            saveData(data);
+            displayShopping();
+        }
+
+        function deleteShopping(index) {
+            const data = getData();
+            data.shopping.splice(index, 1);
+            saveData(data);
+            displayShopping();
+        }
+
+        function clearBought() {
+            const data = getData();
+            data.shopping = data.shopping.filter(item => !item.done);
+            saveData(data);
+            displayShopping();
+        }
+
+        function displayShopping() {
+            renderHome();
+            const data = getData();
+            const items = data.shopping.map((item, i) => ({ ...item, i }));
+            const open = items.filter(item => !item.done);
+            const bought = items.filter(item => item.done);
+            const list = document.getElementById('shoppingList');
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-state">הרשימה ריקה</div>';
+                return;
+            }
+            list.innerHTML = open.map(item => shoppingRow(item, true)).join('')
+                + (bought.length ? `
+                    <div class="group-title">✓ נקנו (${bought.length})</div>
+                    ${bought.map(item => shoppingRow(item, true)).join('')}
+                    <button class="home-action" onclick="clearBought()">🧹 נקה את מה שנקנה</button>
+                ` : '');
+        }
+
+        function goBack() {
+            showSection(previousSection.id, previousSection.nav);
         }
 
         function renderHome() {
@@ -593,21 +824,27 @@
             document.getElementById('homeGreet').textContent = `${greet}, ${name} 👋`;
             document.getElementById('homeDate').textContent = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
 
-            const done = data.tasks.filter(t => t.completed).length;
-            const total = data.tasks.length;
+            const isoToday = isoDay(new Date());
+            const todays = data.tasks.map((t, i) => ({ ...t, i })).filter(t =>
+                t.completed ? t.doneDay === isoToday : (!t.due || t.due <= isoToday)
+            );
+            const done = todays.filter(t => t.completed).length;
+            const total = todays.length;
             const pct = total ? Math.round(done / total * 100) : 0;
             document.getElementById('homeTasksDone').textContent = done;
             document.getElementById('homeTasksTotal').textContent = total;
             document.getElementById('homeRingPct').textContent = pct + '%';
             document.getElementById('homeRing').style.setProperty('--p', (pct * 3.6) + 'deg');
             document.getElementById('homeTasks').innerHTML = total === 0
-                ? '<div class="empty-state">אין משימות עדיין</div>'
-                : data.tasks.map((t, i) => `
-                    <div class="home-row ${t.completed ? 'done' : ''}">
-                        <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${i})">${t.completed ? '✓' : ''}</button>
-                        <span>${t.name}</span>
-                    </div>
-                `).join('');
+                ? '<div class="empty-state">אין משימות להיום 🎉</div>'
+                : todays.map(t => taskRow(t, false)).join('');
+
+            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done);
+            document.getElementById('homeShopTxt').textContent = openShop.length ? `${openShop.length} לקנות ←` : 'לרשימה ←';
+            document.getElementById('homeShop').innerHTML = openShop.length === 0
+                ? '<div class="empty-state">הרשימה ריקה</div>'
+                : openShop.slice(0, 5).map(item => shoppingRow(item, false)).join('')
+                  + (openShop.length > 5 ? `<div class="group-title">ועוד ${openShop.length - 5}...</div>` : '');
 
             const glasses = data.water[today] || 0;
             document.getElementById('homeWaterTxt').textContent = `${glasses} מתוך ${WATER_GOAL} כוסות`;
@@ -657,7 +894,7 @@
                 return;
             }
             const data = getData();
-            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL') });
+            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL'), due: isoDay(new Date()), who: currentUser || 'both' });
             saveData(data);
             input.value = '';
             displayTasks();
@@ -935,7 +1172,9 @@
             data.tasks.push({
                 name: name,
                 completed: false,
-                date: new Date().toLocaleString('he-IL')
+                date: new Date().toLocaleString('he-IL'),
+                due: document.getElementById('taskDue').value,
+                who: document.getElementById('taskWho').value
             });
             saveData(data);
             document.getElementById('taskName').value = '';
@@ -945,27 +1184,33 @@
 
         function displayTasks() {
             renderHome();
+            renderCalendar();
             const data = getData();
             const list = document.getElementById('tasksList');
             if (data.tasks.length === 0) {
                 list.innerHTML = '<div class="empty-state">אין משימות</div>';
                 return;
             }
-            list.innerHTML = data.tasks.map((task, i) => `
-                <div class="note-item ${task.completed ? 'completed' : ''}" style="${task.completed ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="font-weight: bold;">${task.name}</span>
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})" style="width: 18px; height: 18px; cursor: pointer;">
-                    </div>
-                    <div style="font-size: 12px; color: #999; margin-bottom: 10px;">${task.date}</div>
-                    <button class="delete-btn" onclick="deleteTask(${i});">🗑️ מחק</button>
-                </div>
+            const today = isoDay(new Date());
+            const items = data.tasks.map((t, i) => ({ ...t, i }));
+            const groups = [
+                ['⚠️ באיחור', items.filter(t => !t.completed && t.due && t.due < today)],
+                ['📌 היום', items.filter(t => !t.completed && t.due === today)],
+                ['🗓️ בהמשך', items.filter(t => !t.completed && t.due > today).sort((a, b) => a.due.localeCompare(b.due))],
+                ['📋 בלי תאריך', items.filter(t => !t.completed && !t.due)],
+                ['✓ הושלמו', items.filter(t => t.completed)]
+            ];
+            list.innerHTML = groups.filter(([, g]) => g.length).map(([title, g]) => `
+                <div class="group-title">${title}</div>
+                ${g.map(t => taskRow(t, true)).join('')}
             `).join('');
         }
 
         function toggleTask(index) {
             const data = getData();
-            data.tasks[index].completed = !data.tasks[index].completed;
+            const task = data.tasks[index];
+            task.completed = !task.completed;
+            task.doneDay = task.completed ? isoDay(new Date()) : '';
             saveData(data);
             displayTasks();
         }

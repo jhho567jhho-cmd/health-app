@@ -5,7 +5,7 @@
 - **Partner**: Devorah (דבורה) - Chaim's wife
 
 ## Scope
-- The app tracks **general health and fitness** only: water, meals and calories, workouts, weight, daily tasks, photos.
+- The app tracks **general health and fitness** and runs the household day: water, meals and calories, weight, photos, tasks with due dates and owner, a calendar of tasks, and a shared shopping list.
 - **Not in scope:** fertility or cycle tracking. Do not add it, and do not use the word "פוריות" for this app.
 
 ## Product Principles
