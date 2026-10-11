@@ -1,5 +1,4 @@
--- NOT YET APPLIED: the Supabase connector cancels write tools for this session.
--- Run in the Supabase SQL Editor for project iewlhdcinmktrzepjstc.
+-- Applied manually in the Supabase SQL Editor on 2026-10-11.
 -- Both partners must be able to change shared items (e.g. tick off a task the other added).
 -- The author is still recorded on insert; any member may update or delete the couple's rows.
 drop policy "members manage water" on public.water_logs;
