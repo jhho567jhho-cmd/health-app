@@ -19,7 +19,7 @@
 - Live: https://health-app-web-umber.vercel.app/ (Vercel project `health-app-web`, deployed from this branch)
 - Data: Supabase project `iewlhdcinmktrzepjstc`. Tasks, shopping, water, weight and meals sync between both partners; photos and tips stay on each device.
 - Sign-in: email + password. Only emails in `public.allowed_members` can join (see `supabase/migrations`). Personal emails are not stored in the repo.
-- The Supabase connector cannot run schema changes in these sessions; new SQL goes in `supabase/migrations/` and is run in the Supabase SQL Editor.
+- Schema changes: keep every change as a file in `supabase/migrations/`. The connector's `apply_migration` has worked, but was cancelled in some sessions; if so, the SQL is run in the Supabase SQL Editor.
 - `vendor/supabase.js` is supabase-js 2.45.4 (UMD), bundled so the app does not depend on a CDN.
 
 ## Important Context

@@ -1,4 +1,4 @@
--- NOT YET APPLIED. Run in the Supabase SQL Editor for project iewlhdcinmktrzepjstc.
+-- Applied to project iewlhdcinmktrzepjstc on 2026-10-11 (allowed_members rows added separately).
 -- 1) Tasks get a due date and an owner; 2) shared shopping list;
 -- 3) sign-in: only allow-listed emails can join the couple's shared space.
 
