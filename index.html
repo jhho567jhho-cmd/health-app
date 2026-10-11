@@ -589,9 +589,10 @@
             <!-- Shopping Tab -->
             <div id="shopping" class="tab-content">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🛒 רשימת קניות</h2>
-                <div class="home-add" style="margin-bottom: 10px;">
+                <div class="home-add" style="margin-bottom: 10px; flex-wrap: wrap;">
                     <input type="text" id="shopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('shopInput')">
                     <button onclick="addShopping('shopInput')">+ הוסף</button>
+                    <select id="shopCat" style="flex-basis: 100%;"></select>
                 </div>
                 <div id="shoppingList"></div>
                 <div class="group-title">📋 מוצרי יסוד: לחיצה מוסיפה לרשימה, לחיצה נוספת מורידה</div>
@@ -1241,6 +1242,10 @@
             ['🧴 טיפוח והיגיינה', ['שמפו', 'מרכך שיער', 'סבון גוף', 'סבון ידיים', 'משחת שיניים', 'מברשות שיניים', 'חוט דנטלי', 'דאודורנט', 'קרם לחות', 'קרם הגנה', 'סכיני גילוח', 'צמר גפן', 'מגבונים', 'פלסטרים']]
         ];
 
+        document.getElementById('shopCat').innerHTML = '<option value="">קטגוריה אוטומטית</option>'
+            + STAPLES.map(([title]) => `<option value="${title}">${title}</option>`).join('')
+            + '<option value="📦 אחר">📦 אחר</option>';
+
         const STAPLE_CATEGORY = new Map(STAPLES.flatMap(([title, items]) => items.map(name => [name, title])));
         const OTHER_CATEGORY = '📦 אחר';
 
@@ -1263,15 +1268,6 @@
             } else {
                 addShoppingName(name);
             }
-        }
-
-        function addToCategory(gi) {
-            const input = document.getElementById(`catIn${gi}`);
-            const name = input.value.trim();
-            if (!name) return;
-            const title = gi < STAPLES.length ? STAPLES[gi][0] : OTHER_CATEGORY;
-            input.value = '';
-            addShoppingName(name, title);
         }
 
         function toggleCustomChip(name) {
@@ -1297,10 +1293,6 @@
                             ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
                             ${extra.map(item => `<button class="chip on" data-name="${item.name.replace(/"/g, '&quot;')}" onclick="toggleCustomChip(this.dataset.name)">✓ ${item.name}</button>`).join('')}
                         </div>
-                        <div class="home-add" style="margin-top: 10px;">
-                            <input type="text" id="catIn${gi}" placeholder="הוסף ל${title}..." onkeydown="if (event.key === 'Enter') addToCategory(${gi})">
-                            <button onclick="addToCategory(${gi})">+</button>
-                        </div>
                     </details>
                 `;
             }).join('');
@@ -1313,8 +1305,9 @@
                 showError('⚠️ מה לקנות?');
                 return;
             }
+            const chosen = document.getElementById('shopCat').value;
             input.value = '';
-            addShoppingName(name);
+            addShoppingName(name, chosen);
         }
 
         function toggleShopping(index) {
