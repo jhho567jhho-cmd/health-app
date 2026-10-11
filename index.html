@@ -561,6 +561,7 @@
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">✅ משימות</h2>
                 <button class="new-task-btn" onclick="openTaskSheet(null)">+ אירוע חדש</button>
                 <div class="chips" id="taskFilters"></div>
+                <div class="chips" id="taskCategoryFilters"></div>
                 <div id="tasksList"></div>
             </div>
 
@@ -1651,13 +1652,20 @@
 
         const TASK_FILTERS = [['all', 'הכל'], ['today', 'היום'], ['in_progress', 'בביצוע'], ['done', 'הושלמו']];
         let taskFilter = 'all';
+        let taskCategoryFilter = '';
 
         function setTaskFilter(key) {
             taskFilter = key;
             displayTasks();
         }
 
+        function setTaskCategoryFilter(key) {
+            taskCategoryFilter = taskCategoryFilter === key ? '' : key;
+            displayTasks();
+        }
+
         function matchesTaskFilter(t, today) {
+            if (taskCategoryFilter && t.category !== taskCategoryFilter) return false;
             if (taskFilter === 'today') return !t.completed && t.due === today;
             if (taskFilter === 'in_progress') return !t.completed && t.status === 'in_progress';
             if (taskFilter === 'done') return t.completed;
@@ -1672,6 +1680,8 @@
             const today = isoDay(new Date());
             document.getElementById('taskFilters').innerHTML = TASK_FILTERS
                 .map(([key, label]) => `<button class="chip ${taskFilter === key ? 'on' : ''}" onclick="setTaskFilter('${key}')">${label}</button>`).join('');
+            document.getElementById('taskCategoryFilters').innerHTML = TASK_CATEGORIES
+                .map(([key, label]) => `<button class="chip ${taskCategoryFilter === key ? 'on' : ''}" onclick="setTaskCategoryFilter('${key}')">${label}</button>`).join('');
             const items = data.tasks.map((t, i) => ({ ...t, i })).filter(t => matchesTaskFilter(t, today));
             if (items.length === 0) {
                 list.innerHTML = '<div class="empty-state">אין משימות</div>';

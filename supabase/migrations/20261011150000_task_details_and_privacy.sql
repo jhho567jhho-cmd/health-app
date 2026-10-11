@@ -1,4 +1,4 @@
--- NOT YET APPLIED. Run in the Supabase SQL Editor for project iewlhdcinmktrzepjstc.
+-- Applied to project iewlhdcinmktrzepjstc.
 -- Task details (time range, notes, status) and private tasks.
 -- A private task is visible only to the person who created it; the database
 -- enforces this, so a private task never reaches the partner's phone.
