@@ -591,6 +591,7 @@
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🛒 רשימת קניות</h2>
                 <div class="home-add" style="margin-bottom: 10px;">
                     <input type="text" id="shopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('shopInput')">
+                    <select id="shopCat"></select>
                     <button onclick="addShopping('shopInput')">+ הוסף</button>
                 </div>
                 <div id="shoppingList"></div>
@@ -730,7 +731,7 @@
                 start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || '', category: r.category || '',
                 requestedBy: r.requested_by || '', approvedBy: r.approved_by || ''
             })],
-            shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done })],
+            shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done, category: r.category || '' })],
             weight_entries: ['weights', 'measured_at', r => ({
                 id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
             })],
@@ -1241,23 +1242,22 @@
             ['🧴 טיפוח והיגיינה', ['שמפו', 'מרכך שיער', 'סבון גוף', 'סבון ידיים', 'משחת שיניים', 'מברשות שיניים', 'חוט דנטלי', 'דאודורנט', 'קרם לחות', 'קרם הגנה', 'סכיני גילוח', 'צמר גפן', 'מגבונים', 'פלסטרים']]
         ];
 
-        // Item name -> staples category index, so the list is grouped like supermarket aisles.
-        const STAPLE_GROUP = new Map(STAPLES.flatMap(([, items], gi) => items.map(name => [name, gi])));
-        const OTHER_GROUP = STAPLES.length;
+        document.getElementById('shopCat').innerHTML = '<option value="">קטגוריה אוטומטית</option>'
+            + STAPLES.map(([title]) => `<option value="${title}">${title}</option>`).join('')
+            + '<option value="📦 אחר">📦 אחר</option>';
 
-        function shoppingGroup(name) {
-            const group = STAPLE_GROUP.get(name.trim());
-            return group === undefined ? OTHER_GROUP : group;
+        const STAPLE_CATEGORY = new Map(STAPLES.flatMap(([title, items]) => items.map(name => [name, title])));
+        const OTHER_CATEGORY = '📦 אחר';
+
+        function categoryFor(name, chosen) {
+            return chosen || STAPLE_CATEGORY.get(name.trim()) || '';
         }
 
-        function byAisle(a, b) {
-            return shoppingGroup(a.name) - shoppingGroup(b.name);
-        }
-
-        function addShoppingName(name) {
-            cloud.shopping.push({ name: name, done: false });
+        function addShoppingName(name, category) {
+            const cat = categoryFor(name, category);
+            cloud.shopping.push({ name: name, done: false, category: cat });
             displayShopping();
-            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name }), 'shopping_items');
+            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name, category: cat || null }), 'shopping_items');
         }
 
         function toggleStaple(groupIndex, itemIndex) {
@@ -1270,18 +1270,28 @@
             }
         }
 
+        function toggleCustomChip(name) {
+            const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
+            if (index >= 0) deleteShopping(index);
+        }
+
         function renderStaples() {
             const container = document.getElementById('staples');
             // Keep open groups open across re-renders.
             const openGroups = new Set([...container.querySelectorAll('.staple-group[open]')].map(d => d.dataset.group));
-            const onList = new Set(cloud.shopping.filter(item => !item.done).map(item => item.name));
-            container.innerHTML = STAPLES.map(([title, items], gi) => {
-                const count = items.filter(name => onList.has(name)).length;
+            const open = cloud.shopping.filter(item => !item.done);
+            const onList = new Set(open.map(item => item.name));
+            const customs = open.filter(item => !STAPLE_CATEGORY.has(item.name.trim()));
+            const groups = [...STAPLES, [OTHER_CATEGORY, []]];
+            container.innerHTML = groups.map(([title, items], gi) => {
+                const extra = customs.filter(item => (item.category || OTHER_CATEGORY) === title);
+                const count = items.filter(name => onList.has(name)).length + extra.length;
                 return `
                     <details class="staple-group" data-group="${gi}" ${openGroups.has(String(gi)) ? 'open' : ''}>
                         <summary>${title}${count ? `<b>${count}</b>` : ''}</summary>
                         <div class="chips">
                             ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
+                            ${extra.map(item => `<button class="chip on" data-name="${item.name.replace(/"/g, '&quot;')}" onclick="toggleCustomChip(this.dataset.name)">✓ ${item.name}</button>`).join('')}
                         </div>
                     </details>
                 `;
@@ -1295,8 +1305,9 @@
                 showError('⚠️ מה לקנות?');
                 return;
             }
+            const chosen = document.getElementById('shopCat').value;
             input.value = '';
-            addShoppingName(name);
+            addShoppingName(name, chosen);
         }
 
         function toggleShopping(index) {
