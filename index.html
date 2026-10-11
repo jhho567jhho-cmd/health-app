@@ -359,6 +359,7 @@
         .sheet label { margin: 18px 0 8px; color: #6b7080; font-size: 14px; }
         .sheet .field { width: 100%; padding: 14px 16px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; font-size: 16px; font-family: inherit; direction: rtl; }
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
         .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .type-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 8px; background: white; color: #555; border: 2px solid #e7e9f2; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: none !important; transform: none !important; }
         .type-tile b { font-size: 40px; line-height: 1; }
@@ -384,6 +385,7 @@
                 <input class="auth-input" type="password" id="authPassword" placeholder="סיסמה (לפחות 6 תווים)" autocomplete="current-password" dir="ltr" onkeydown="if (event.key === 'Enter') signIn()">
                 <button class="login-btn chaim" onclick="signIn()">כניסה</button>
                 <button class="login-btn devorah" onclick="signUp()">הרשמה ראשונה</button>
+                <a href="#" class="forgot-link" onclick="sendPasswordReset(); return false;">שכחתי סיסמה</a>
                 <div class="auth-msg" id="authMsg"></div>
             </div>
         </div>
@@ -802,7 +804,36 @@
             };
         }
 
+        let recoveryMode = false;
+
+        async function sendPasswordReset() {
+            const { email } = authFields();
+            if (!email) {
+                setAuthMsg('⚠️ הכנס את האימייל ואז לחץ "שכחתי סיסמה"');
+                return;
+            }
+            const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+            setAuthMsg(error ? '❌ ' + error.message : '📧 נשלח מייל לאיפוס סיסמה. פתח את הקישור שבמייל.');
+        }
+
+        async function saveNewPassword() {
+            const password = document.getElementById('authPassword').value;
+            if (password.length < 6) {
+                setAuthMsg('⚠️ סיסמה חדשה של לפחות 6 תווים');
+                return;
+            }
+            const { error } = await sb.auth.updateUser({ password });
+            if (error) {
+                setAuthMsg('❌ ' + error.message);
+                return;
+            }
+            recoveryMode = false;
+            const { data } = await sb.auth.getSession();
+            handleSession(data.session);
+        }
+
         async function signIn() {
+            if (recoveryMode) return saveNewPassword();
             const { email, password } = authFields();
             if (!email || !password) {
                 setAuthMsg('⚠️ הכנס אימייל וסיסמה');
@@ -840,6 +871,12 @@
 
         // Supabase recommends not awaiting its own calls inside this callback.
         sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                recoveryMode = true;
+                setAuthMsg('🔑 הכנס סיסמה חדשה ולחץ "כניסה"');
+                return;
+            }
+            if (recoveryMode) return;
             setTimeout(() => handleSession(session), 0);
         });
 
