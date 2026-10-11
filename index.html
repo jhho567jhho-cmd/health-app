@@ -638,17 +638,29 @@
                 <div class="chips" id="tsWhoChips"></div>
             </div>
 
-            <label>סטטוס</label>
-            <select class="field" id="tsStatus">
-                <option value="pending">⏳ ממתין</option>
-                <option value="in_progress">🔄 בביצוע</option>
-                <option value="done">✓ בוצע</option>
-            </select>
+            <label>מי ביקש</label>
+            <input class="field" type="text" id="tsRequestedBy" placeholder="שם">
+            <div class="chips" id="tsRequestedChips"></div>
+
+            <div class="field-row">
+                <div>
+                    <label>סטטוס</label>
+                    <select class="field" id="tsStatus">
+                        <option value="pending">⏳ ממתין</option>
+                        <option value="in_progress">🔄 בביצוע</option>
+                        <option value="done">✓ בוצע</option>
+                    </select>
+                </div>
+                <div>
+                    <label>מאושר ע"י</label>
+                    <input class="field" type="text" id="tsApprovedBy" placeholder="שם">
+                </div>
+            </div>
 
             <label>הערות</label>
             <textarea class="field" id="tsNotes" rows="3" placeholder="לא חובה"></textarea>
 
-            <button class="sheet-submit" id="tsSubmit" onclick="saveTaskSheet()">הוסף משימה</button>
+            <button class="sheet-submit" id="tsSubmit" onclick="saveTaskSheet()">הוסף אירוע</button>
             <button class="sheet-delete" id="tsDelete" onclick="deleteFromSheet()">🗑️ מחק משימה</button>
         </div>
     </div>
@@ -707,7 +719,8 @@
                 id: r.id, name: r.title, completed: r.done, due: r.due_date || '', who: memberKey(r.assigned_to),
                 doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL'),
                 isPrivate: r.is_private, createdBy: r.created_by, status: r.status || (r.done ? 'done' : 'pending'),
-                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || ''
+                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || '',
+                requestedBy: r.requested_by || '', approvedBy: r.approved_by || ''
             })],
             shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done })],
             weight_entries: ['weights', 'measured_at', r => ({
@@ -966,8 +979,8 @@
             editingTask = index === null || index === undefined ? null : index;
             const t = editingTask === null ? null : cloud.tasks[editingTask];
             if (t && !t.id) return;
-            document.getElementById('tsHeading').textContent = t ? 'עריכת משימה' : 'משימה חדשה';
-            document.getElementById('tsSubmit').textContent = t ? 'שמור שינויים' : 'הוסף משימה';
+            document.getElementById('tsHeading').textContent = t ? 'עריכת אירוע' : 'אירוע חדש';
+            document.getElementById('tsSubmit').textContent = t ? 'שמור שינויים' : 'הוסף אירוע';
             document.getElementById('tsDelete').style.display = t ? 'block' : 'none';
             document.getElementById('tsTitle').value = t ? t.name : '';
             document.getElementById('tsDue').value = t ? t.due : (presetDue || isoDay(new Date()));
@@ -975,6 +988,10 @@
             document.getElementById('tsEnd').value = t ? t.end : '';
             document.getElementById('tsStatus').value = t ? t.status : 'pending';
             document.getElementById('tsNotes').value = t ? t.notes : '';
+            document.getElementById('tsRequestedBy').value = t ? t.requestedBy : '';
+            document.getElementById('tsApprovedBy').value = t ? t.approvedBy : '';
+            document.getElementById('tsRequestedChips').innerHTML = ['חיים', 'דבורה']
+                .map(name => `<button class="chip" onclick="document.getElementById('tsRequestedBy').value = '${name}'">${name}</button>`).join('');
             // Only the author can make a task private (the database enforces this too).
             document.getElementById('tsPrivate').disabled = !!t && t.createdBy !== userId;
             document.getElementById('tsTitleChips').innerHTML = QUICK_TASKS
@@ -1023,6 +1040,8 @@
                 start: document.getElementById('tsStart').value,
                 end: document.getElementById('tsEnd').value,
                 notes: document.getElementById('tsNotes').value.trim(),
+                requestedBy: document.getElementById('tsRequestedBy').value.trim(),
+                approvedBy: document.getElementById('tsApprovedBy').value.trim(),
                 isPrivate: isPrivate,
                 who: isPrivate ? currentUser : sheetWho,
                 status: status,
@@ -1034,6 +1053,8 @@
                 start_time: local.start || null,
                 end_time: local.end || null,
                 notes: local.notes || null,
+                requested_by: local.requestedBy || null,
+                approved_by: local.approvedBy || null,
                 is_private: isPrivate,
                 assigned_to: isPrivate ? userId : memberUserId(sheetWho),
                 status: status,
