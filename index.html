@@ -1270,6 +1270,15 @@
             }
         }
 
+        function addToCategory(gi) {
+            const input = document.getElementById(`catIn${gi}`);
+            const name = input.value.trim();
+            if (!name) return;
+            const title = gi < STAPLES.length ? STAPLES[gi][0] : OTHER_CATEGORY;
+            input.value = '';
+            addShoppingName(name, title);
+        }
+
         function toggleCustomChip(name) {
             const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
             if (index >= 0) deleteShopping(index);
@@ -1292,6 +1301,10 @@
                         <div class="chips">
                             ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
                             ${extra.map(item => `<button class="chip on" data-name="${item.name.replace(/"/g, '&quot;')}" onclick="toggleCustomChip(this.dataset.name)">✓ ${item.name}</button>`).join('')}
+                        </div>
+                        <div class="home-add" style="margin-top: 10px;">
+                            <input type="text" id="catIn${gi}" placeholder="הוסף ל${title}..." onkeydown="if (event.key === 'Enter') addToCategory(${gi})">
+                            <button onclick="addToCategory(${gi})">+</button>
                         </div>
                     </details>
                 `;
