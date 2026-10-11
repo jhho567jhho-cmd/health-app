@@ -471,6 +471,7 @@
                     <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
                     <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
                     <button onclick="showSection('tips', 'more')">💡 טיפים</button>
+                    <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
             </div>
@@ -867,6 +868,17 @@
 
         async function logout() {
             await sb.auth.signOut();
+        }
+
+        function exportBackup() {
+            const data = getData();
+            const backup = { exportedAt: new Date().toISOString(), tasks: data.tasks, shopping: data.shopping, weights: data.weights, menu: data.menu, water: data.water };
+            const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `health-backup-${isoDay(new Date())}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // Supabase recommends not awaiting its own calls inside this callback.
@@ -1360,7 +1372,7 @@
                 ? '<div class="empty-state">אין משימות להיום 🎉</div>'
                 : todays.map(t => taskRow(t, false)).join('');
 
-            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done).sort(byAisle);
+            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done);
             document.getElementById('homeShopTxt').textContent = openShop.length ? `${openShop.length} לקנות ←` : 'לרשימה ←';
             document.getElementById('homeShop').innerHTML = openShop.length === 0
                 ? '<div class="empty-state">הרשימה ריקה</div>'
@@ -1558,7 +1570,6 @@
             cloud.menu.push({ name: name, cal: cal, cat: cat, date: new Date().toLocaleString('he-IL') });
             document.getElementById('menuName').value = '';
             document.getElementById('menuCal').value = '';
-            document.getElementById('menuCat').value = '';
             displayMenu();
             showSuccess('✅ נוסף!');
             cloudWrite(sb.from('meal_logs').insert({
