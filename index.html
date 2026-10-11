@@ -620,6 +620,9 @@
             <input class="field" type="text" id="tsTitle" placeholder="שם המשימה">
             <div class="chips" id="tsTitleChips"></div>
 
+            <label>סוג</label>
+            <div class="chips" id="tsCategoryChips"></div>
+
             <label>תאריך</label>
             <input class="field" type="date" id="tsDue">
 
@@ -720,7 +723,7 @@
                 id: r.id, name: r.title, completed: r.done, due: r.due_date || '', who: memberKey(r.assigned_to),
                 doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL'),
                 isPrivate: r.is_private, createdBy: r.created_by, status: r.status || (r.done ? 'done' : 'pending'),
-                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || '',
+                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || '', category: r.category || '',
                 requestedBy: r.requested_by || '', approvedBy: r.approved_by || ''
             })],
             shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done })],
@@ -956,7 +959,8 @@
             const owner = t.isPrivate ? '🔒 פרטי' : (WHO[t.who] || '');
             const requester = t.requestedBy ? `ביקש: ${t.requestedBy}` : '';
             const approver = t.approvedBy ? `מאשר: ${t.approvedBy}` : '';
-            const meta = [t.due ? formatDay(t.due) : '', time, owner, requester, approver].filter(Boolean).join(' · ');
+            const category = (TASK_CATEGORIES.find(([key]) => key === t.category) || [])[1] || '';
+            const meta = [category, t.due ? formatDay(t.due) : '', time, owner, requester, approver].filter(Boolean).join(' · ');
             const badge = !t.completed && t.status === 'in_progress' ? ' <i class="badge">בביצוע</i>' : '';
             return `
                 <div class="home-row ${t.completed ? 'done' : ''} ${overdue ? 'overdue' : ''}">
@@ -991,6 +995,8 @@
             document.getElementById('tsEnd').value = t ? t.end : '';
             document.getElementById('tsStatus').value = t ? t.status : 'pending';
             document.getElementById('tsNotes').value = t ? t.notes : '';
+            sheetCategory = t ? t.category : '';
+            renderCategoryChips();
             document.getElementById('tsRequestedBy').value = t ? t.requestedBy : '';
             document.getElementById('tsApprovedBy').value = t ? t.approvedBy : '';
             document.getElementById('tsRequestedChips').innerHTML = ['חיים', 'דבורה']
@@ -1016,6 +1022,19 @@
             document.getElementById('tsPrivate').classList.toggle('active', visibility === 'private');
             document.getElementById('tsWhoBlock').style.display = visibility === 'private' ? 'none' : 'block';
             renderWhoChips();
+        }
+
+        const TASK_CATEGORIES = [['work', '💼 עבודה'], ['appointment', '🩺 תור'], ['personal', '👤 אישי']];
+        let sheetCategory = '';
+
+        function renderCategoryChips() {
+            document.getElementById('tsCategoryChips').innerHTML = TASK_CATEGORIES
+                .map(([key, label]) => `<button class="chip ${sheetCategory === key ? 'on' : ''}" onclick="setTaskCategory('${key}')">${label}</button>`).join('');
+        }
+
+        function setTaskCategory(key) {
+            sheetCategory = sheetCategory === key ? '' : key;
+            renderCategoryChips();
         }
 
         function setTaskWho(who) {
@@ -1045,6 +1064,7 @@
                 notes: document.getElementById('tsNotes').value.trim(),
                 requestedBy: document.getElementById('tsRequestedBy').value.trim(),
                 approvedBy: document.getElementById('tsApprovedBy').value.trim(),
+                category: sheetCategory,
                 isPrivate: isPrivate,
                 who: isPrivate ? currentUser : sheetWho,
                 status: status,
@@ -1058,6 +1078,7 @@
                 notes: local.notes || null,
                 requested_by: local.requestedBy || null,
                 approved_by: local.approvedBy || null,
+                category: local.category || null,
                 is_private: isPrivate,
                 assigned_to: isPrivate ? userId : memberUserId(sheetWho),
                 status: status,
