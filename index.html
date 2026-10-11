@@ -1285,14 +1285,8 @@
                 list.innerHTML = '<div class="empty-state">הרשימה ריקה</div>';
                 return;
             }
-            const groups = [...STAPLES.map(([title]) => title), '📦 אחר']
-                .map((title, gi) => [title, open.filter(item => shoppingGroup(item.name) === gi)])
-                .filter(([, g]) => g.length);
             list.innerHTML = (open.length ? `<div class="shop-summary">🛒 ${open.length} פריטים לקנות</div>` : '<div class="empty-state">הכול נקנה 🎉</div>')
-                + groups.map(([title, g]) => `
-                    <div class="shop-group-title"><span>${title}</span><span>${g.length}</span></div>
-                    ${g.map(item => shoppingRow(item, true)).join('')}
-                `).join('')
+                + open.map(item => shoppingRow(item, true)).join('')
                 + (bought.length ? `
                     <div class="group-title">✓ נקנו (${bought.length})</div>
                     ${bought.map(item => shoppingRow(item, true)).join('')}
@@ -1519,8 +1513,9 @@
             const name = document.getElementById('menuName').value.trim();
             const cal = document.getElementById('menuCal').value;
             const cat = document.getElementById('menuCat').value;
-            if (!name || !cal || !cat) {
-                showError('⚠️ מלא הכל');
+            const missing = [!name && 'שם', !cal && 'קלוריות', !cat && 'קטגוריה'].filter(Boolean);
+            if (missing.length) {
+                showError(`⚠️ חסר: ${missing.join(', ')}`);
                 return;
             }
             cloud.menu.push({ name: name, cal: cal, cat: cat, date: new Date().toLocaleString('he-IL') });
