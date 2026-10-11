@@ -346,6 +346,9 @@
         .chip { width: auto; padding: 7px 12px; border-radius: 16px; background: #f0f2fb; color: #333; font-size: 13px; font-weight: 500; box-shadow: none !important; transform: none !important; }
         .chip.on { background: #2e9e6a; color: white; }
 
+        .shop-summary { font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
+        .shop-group-title { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #667eea; background: #f0f2fb; padding: 6px 10px; border-radius: 8px; margin: 12px 0 2px; }
+
     </style>
 </head>
 <body>
@@ -963,6 +966,19 @@
             ['🧴 טיפוח והיגיינה', ['שמפו', 'מרכך שיער', 'סבון גוף', 'סבון ידיים', 'משחת שיניים', 'מברשות שיניים', 'חוט דנטלי', 'דאודורנט', 'קרם לחות', 'קרם הגנה', 'סכיני גילוח', 'צמר גפן', 'מגבונים', 'פלסטרים']]
         ];
 
+        // Item name -> staples category index, so the list is grouped like supermarket aisles.
+        const STAPLE_GROUP = new Map(STAPLES.flatMap(([, items], gi) => items.map(name => [name, gi])));
+        const OTHER_GROUP = STAPLES.length;
+
+        function shoppingGroup(name) {
+            const group = STAPLE_GROUP.get(name.trim());
+            return group === undefined ? OTHER_GROUP : group;
+        }
+
+        function byAisle(a, b) {
+            return shoppingGroup(a.name) - shoppingGroup(b.name);
+        }
+
         function addShoppingName(name) {
             cloud.shopping.push({ name: name, done: false });
             displayShopping();
@@ -1043,7 +1059,14 @@
                 list.innerHTML = '<div class="empty-state">הרשימה ריקה</div>';
                 return;
             }
-            list.innerHTML = open.map(item => shoppingRow(item, true)).join('')
+            const groups = [...STAPLES.map(([title]) => title), '📦 אחר']
+                .map((title, gi) => [title, open.filter(item => shoppingGroup(item.name) === gi)])
+                .filter(([, g]) => g.length);
+            list.innerHTML = (open.length ? `<div class="shop-summary">🛒 ${open.length} פריטים לקנות</div>` : '<div class="empty-state">הכול נקנה 🎉</div>')
+                + groups.map(([title, g]) => `
+                    <div class="shop-group-title"><span>${title}</span><span>${g.length}</span></div>
+                    ${g.map(item => shoppingRow(item, true)).join('')}
+                `).join('')
                 + (bought.length ? `
                     <div class="group-title">✓ נקנו (${bought.length})</div>
                     ${bought.map(item => shoppingRow(item, true)).join('')}
@@ -1080,7 +1103,7 @@
                 ? '<div class="empty-state">אין משימות להיום 🎉</div>'
                 : todays.map(t => taskRow(t, false)).join('');
 
-            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done);
+            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done).sort(byAisle);
             document.getElementById('homeShopTxt').textContent = openShop.length ? `${openShop.length} לקנות ←` : 'לרשימה ←';
             document.getElementById('homeShop').innerHTML = openShop.length === 0
                 ? '<div class="empty-state">הרשימה ריקה</div>'
