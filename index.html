@@ -239,25 +239,6 @@
             border-right: 3px solid #667eea;
         }
 
-        .note-author {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .note-content {
-            color: #333;
-            margin-bottom: 5px;
-            word-break: break-word;
-            line-height: 1.5;
-        }
-
-        .note-date {
-            font-size: 12px;
-            color: #999;
-        }
-
         .delete-btn {
             background: #ff6b6b !important;
             padding: 8px 12px !important;
@@ -429,25 +410,7 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
-
     <script>
-        // Firebase Configuration - Using Local Emulator
-        const firebaseConfig = {
-            projectId: "health-app-local",
-            databaseURL: "http://127.0.0.1:9000?ns=health-app-local"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Connect to Emulator
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            database.useEmulator('127.0.0.1', 9000);
-        }
-
         let currentUser = null;
         const DATA_KEY = 'health-app-data-v6';
         const TIPS = [
@@ -462,7 +425,7 @@
         ];
 
         const AI_RESPONSES = {
-            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ببטיות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
+            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ארוחות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
             'בריאות': '💪 תכנית בריאות\n\n1. פעילות: הליכה 30 דקות ביום\n2. תזונה: ירקות, פרות, חלבון\n3. שינה: 7-8 שעות בלילה\n4. מים: 8 כוסות ביום\n5. עקוב אחרי ההתקדמות!',
             'מתכונים': '🍽️ מתכונים בריאים\n\n• סלט ירקות עם לימון\n• עוף בתנור עם ירקות\n• דגים צלויים עם אורז חום\n• ביצים עם שום\n• חומוס עם סלט\n• סלט טונה\n\n💡 הכן ארוחות בראשון!',
             'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה'
@@ -474,7 +437,6 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appContainer').classList.add('active');
             document.getElementById('currentUser').textContent = user === 'chaim' ? '👨 חיים' : '👩 דבורה';
-            loadSharedNotes();
             displayPhotos();
             displayMenu();
             displayTips();
@@ -487,64 +449,6 @@
             currentUser = null;
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('appContainer').classList.remove('active');
-        }
-
-        // Shared Notes (Firebase Sync)
-        function addSharedNote() {
-            const noteText = document.getElementById('noteInput').value.trim();
-            if (!noteText) {
-                showError('⚠️ כתוב משהו');
-                return;
-            }
-
-            const noteData = {
-                author: currentUser === 'chaim' ? '👨 חיים' : '👩 דבורה',
-                content: noteText,
-                timestamp: new Date().toLocaleString('he-IL'),
-                id: Date.now()
-            };
-
-            database.ref('sharedNotes').push(noteData, (error) => {
-                if (error) {
-                    showError('❌ שגיאה בשמירה');
-                    console.error(error);
-                } else {
-                    document.getElementById('noteInput').value = '';
-                    showSuccess('✅ סיכרון נשמר!');
-                    loadSharedNotes();
-                }
-            });
-        }
-
-        function loadSharedNotes() {
-            database.ref('sharedNotes').on('value', (snapshot) => {
-                const notes = snapshot.val() || {};
-                displaySharedNotes(notes);
-            });
-        }
-
-        function displaySharedNotes(notesObj) {
-            const list = document.getElementById('notesList');
-            const notesArray = Object.entries(notesObj).map(([key, val]) => ({...val, firebaseKey: key}));
-            notesArray.reverse();
-
-            if (notesArray.length === 0) {
-                list.innerHTML = '<div class="empty-state">אין סיכרונות עדיין</div>';
-                return;
-            }
-
-            list.innerHTML = notesArray.map(note => `
-                <div class="note-item">
-                    <div class="note-author">${note.author}</div>
-                    <div class="note-content">${note.content}</div>
-                    <div class="note-date">${note.timestamp}</div>
-                    <button class="delete-btn" onclick="deleteNote('${note.firebaseKey}');">🗑️ מחק</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteNote(key) {
-            database.ref('sharedNotes/' + key).remove();
         }
 
         // Local Data Functions (localStorage)
