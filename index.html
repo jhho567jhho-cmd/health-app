@@ -157,27 +157,6 @@
             overflow-x: auto;
         }
 
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.3s;
-            color: #333;
-            min-width: 50px;
-            white-space: nowrap;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
         .content {
             flex: 1;
             overflow-y: auto;
@@ -291,6 +270,51 @@
             color: #999;
             padding: 30px 20px;
         }
+        .content { padding-bottom: 90px; }
+
+        .back-btn { width: auto; background: none; color: #667eea; padding: 6px 0; margin-bottom: 10px; font-size: 14px; box-shadow: none !important; transform: none !important; }
+
+        .more-list { display: grid; gap: 10px; }
+
+        .home-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .hero-greet { font-size: 20px; font-weight: 700; }
+        .hero-date { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+        .hero-tasks { font-size: 13px; margin-top: 8px; }
+        .ring { width: 74px; height: 74px; border-radius: 50%; background: conic-gradient(#fff var(--p, 0deg), rgba(255, 255, 255, 0.25) 0); display: grid; place-items: center; flex-shrink: 0; }
+        .ring span { width: 58px; height: 58px; border-radius: 50%; background: #667eea; display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+
+        .home-card { background: white; border: 1px solid #e7e9f2; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+        .home-card h3 { font-size: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .home-card h3 small { color: #8a90a2; font-weight: 400; font-size: 12px; }
+
+        .glasses { display: flex; gap: 6px; flex-wrap: wrap; }
+        .glass { width: 34px; height: 40px; padding: 0; border: 2px solid #3aa0e8; border-radius: 4px 4px 10px 10px; background: white; box-shadow: none !important; transform: none !important; }
+        .glass.on { background: linear-gradient(to top, #3aa0e8 80%, white 80%); }
+
+        .home-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f0f1f6; font-size: 14px; }
+        .home-row:first-child { border-top: 0; }
+        .home-row.done span { text-decoration: line-through; color: #8a90a2; }
+        .check { width: 26px; height: 26px; min-width: 26px; padding: 0; border-radius: 8px; border: 2px solid #d5d9e6; background: white; color: white; font-size: 14px; box-shadow: none !important; transform: none !important; }
+        .check.on { background: #2e9e6a; border-color: #2e9e6a; }
+
+        .home-add { display: flex; gap: 8px; margin-top: 10px; }
+        .home-add input { flex: 1; }
+        .home-add button { width: auto; white-space: nowrap; }
+        .home-action { margin-top: 10px; background: #f0f2fb; color: #667eea; box-shadow: none !important; transform: none !important; }
+
+        .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 4px; }
+        .stats3 div { background: #f5f6fb; border-radius: 12px; padding: 10px 4px; }
+        .stats3 b { display: block; font-size: 18px; }
+        .stats3 small { color: #8a90a2; font-size: 11px; }
+
+        .bar { height: 10px; background: #eceef6; border-radius: 6px; overflow: hidden; }
+        .bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.4s; }
+
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e7e9f2; justify-content: space-around; padding: 8px 0 12px; z-index: 10; }
+        .app-container.active + .bottom-nav { display: flex; }
+        .nav-btn { width: auto; background: none; color: #8a90a2; font-size: 12px; padding: 4px 10px; display: grid; justify-items: center; gap: 2px; box-shadow: none !important; transform: none !important; }
+        .nav-btn b { font-size: 20px; }
+        .nav-btn.active { color: #667eea; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -317,18 +341,72 @@
             </div>
         </div>
 
-        <div class="tabs" style="margin: 10px;">
-            <button class="tab-btn active" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
-            <button class="tab-btn" onclick="switchTab(event, 'photos')">📸 תמונות</button>
-            <button class="tab-btn" onclick="switchTab(event, 'menu')">🍽️ תפריט</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
-            <button class="tab-btn" onclick="switchTab(event, 'weight')">⚖️ משקל</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tasks')">✅ משימות</button>
-        </div>
-
         <div class="content">
+            <!-- Home Tab -->
+            <div id="home" class="tab-content active">
+                <div class="home-hero">
+                    <div>
+                        <div class="hero-greet" id="homeGreet"></div>
+                        <div class="hero-date" id="homeDate"></div>
+                        <div class="hero-tasks"><span id="homeTasksDone">0</span> מתוך <span id="homeTasksTotal">0</span> משימות הושלמו</div>
+                    </div>
+                    <div class="ring" id="homeRing"><span id="homeRingPct">0%</span></div>
+                </div>
+
+                <div class="home-card">
+                    <h3>💧 מים <small id="homeWaterTxt"></small></h3>
+                    <div class="glasses" id="homeWater"></div>
+                </div>
+
+                <div class="home-card">
+                    <h3>✅ להיום</h3>
+                    <div id="homeTasks"></div>
+                    <div class="home-add">
+                        <input type="text" id="homeTask" placeholder="הוסף משימה...">
+                        <button onclick="addHomeTask()">+ הוסף</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>⚖️ משקל <small id="homeWeightTxt"></small></h3>
+                    <div class="stats3">
+                        <div><b id="homeWeightLast">—</b><small>אחרון</small></div>
+                        <div><b id="homeWeightAvg">—</b><small>ממוצע</small></div>
+                        <div><b id="homeWeightChange">—</b><small>שבוע</small></div>
+                    </div>
+                    <div class="home-add">
+                        <input type="number" id="homeWeight" step="0.1" min="0" placeholder='ק"ג'>
+                        <button onclick="addHomeWeight()">💾 שמור</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>🍽️ קלוריות היום <small id="homeCalTxt"></small></h3>
+                    <div class="bar"><span id="homeCalBar"></span></div>
+                    <button class="home-action" onclick="showSection('menu', 'menu')">+ הוסף ארוחה</button>
+                </div>
+
+                <div class="home-card">
+                    <h3>📸 תמונות <small id="homePhotoTxt"></small></h3>
+                    <button class="home-action" onclick="showSection('photos', 'photos')">📷 הוסף תמונה</button>
+                </div>
+            </div>
+
+            <!-- More Tab -->
+            <div id="more" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">☰ עוד</h2>
+                <div class="more-list">
+                    <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
+                    <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
+                    <button onclick="showSection('tasks', 'more')">✅ כל המשימות</button>
+                    <button onclick="showSection('tips', 'more')">💡 טיפים</button>
+                    <button onclick="logout()">🚪 התנתק</button>
+                </div>
+            </div>
+
             <!-- AI Assistant Tab -->
-            <div id="ai" class="tab-content active">
+            <div id="ai" class="tab-content">
+                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
                     <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
@@ -387,12 +465,14 @@
 
             <!-- Tips Tab -->
             <div id="tips" class="tab-content">
+                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
                 <button onclick="generateTip()" style="margin-bottom: 15px;">💡 קבל טיפ חדש</button>
                 <div id="tipsList"></div>
             </div>
 
             <!-- Weight Tab -->
             <div id="weight" class="tab-content">
+                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
                 <div class="input-group">
                     <label>משקל (ק"ג):</label>
                     <input type="number" id="weightValue" placeholder="0.0" step="0.1" min="0">
@@ -407,6 +487,7 @@
 
             <!-- Tasks Tab -->
             <div id="tasks" class="tab-content">
+                <button class="back-btn" onclick="showSection('more', 'more')">→ חזרה לעוד</button>
                 <div class="input-group">
                     <label>משימה חדשה:</label>
                     <input type="text" id="taskName" placeholder="לדוגמה: הולכה 30 דקות">
@@ -416,6 +497,13 @@
             </div>
         </div>
     </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-nav="home" onclick="showSection('home', 'home')"><b>🏠</b>בית</button>
+        <button class="nav-btn" data-nav="menu" onclick="showSection('menu', 'menu')"><b>🍽️</b>תפריט</button>
+        <button class="nav-btn" data-nav="photos" onclick="showSection('photos', 'photos')"><b>📸</b>תמונות</button>
+        <button class="nav-btn" data-nav="more" onclick="showSection('more', 'more')"><b>☰</b>עוד</button>
+    </nav>
 
     <script>
         let currentUser = null;
@@ -450,6 +538,7 @@
             displayWeight();
             displayTasks();
             initWeightDate();
+            showSection('home', 'home');
         }
 
         function logout() {
@@ -462,14 +551,14 @@
         function getData() {
             try {
                 const data = localStorage.getItem(DATA_KEY);
-                return data ? JSON.parse(data) : getDefaultData();
+                return Object.assign(getDefaultData(), data ? JSON.parse(data) : {});
             } catch (e) {
                 return getDefaultData();
             }
         }
 
         function getDefaultData() {
-            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [] };
+            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [], water: {} };
         }
 
         function saveData(data) {
@@ -480,11 +569,112 @@
             }
         }
 
-        function switchTab(event, tabName) {
+        const WATER_GOAL = 8;
+        const CALORIE_GOAL = 1800;
+
+        function todayKey() {
+            return new Date().toLocaleDateString('he-IL');
+        }
+
+        function showSection(sectionId, navId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.toggle('active', el.dataset.nav === navId));
+            document.querySelector('.content').scrollTop = 0;
+        }
+
+        function renderHome() {
+            const data = getData();
+            const today = todayKey();
+
+            const hour = new Date().getHours();
+            const greet = hour < 12 ? 'בוקר טוב' : hour < 18 ? 'צהריים טובים' : 'ערב טוב';
+            const name = currentUser === 'devorah' ? 'דבורה' : 'חיים';
+            document.getElementById('homeGreet').textContent = `${greet}, ${name} 👋`;
+            document.getElementById('homeDate').textContent = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            const done = data.tasks.filter(t => t.completed).length;
+            const total = data.tasks.length;
+            const pct = total ? Math.round(done / total * 100) : 0;
+            document.getElementById('homeTasksDone').textContent = done;
+            document.getElementById('homeTasksTotal').textContent = total;
+            document.getElementById('homeRingPct').textContent = pct + '%';
+            document.getElementById('homeRing').style.setProperty('--p', (pct * 3.6) + 'deg');
+            document.getElementById('homeTasks').innerHTML = total === 0
+                ? '<div class="empty-state">אין משימות עדיין</div>'
+                : data.tasks.map((t, i) => `
+                    <div class="home-row ${t.completed ? 'done' : ''}">
+                        <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${i})">${t.completed ? '✓' : ''}</button>
+                        <span>${t.name}</span>
+                    </div>
+                `).join('');
+
+            const glasses = data.water[today] || 0;
+            document.getElementById('homeWaterTxt').textContent = `${glasses} מתוך ${WATER_GOAL} כוסות`;
+            document.getElementById('homeWater').innerHTML = Array.from({ length: WATER_GOAL }, (_, i) =>
+                `<button class="glass ${i < glasses ? 'on' : ''}" onclick="tapWater(${i})"></button>`
+            ).join('');
+
+            const weights = data.weights.map(w => parseFloat(w.val));
+            const last = weights.length ? weights[weights.length - 1] : null;
+            const avg = weights.length ? (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1) : null;
+            const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            let change = null;
+            for (let i = data.weights.length - 1; i >= 0; i--) {
+                if (data.weights[i].ts && data.weights[i].ts <= weekAgo) {
+                    change = (last - weights[i]).toFixed(1);
+                    break;
+                }
+            }
+            document.getElementById('homeWeightLast').textContent = last === null ? '—' : last;
+            document.getElementById('homeWeightAvg').textContent = avg === null ? '—' : avg;
+            document.getElementById('homeWeightChange').textContent = change === null ? '—' : (change > 0 ? '+' : '') + change;
+            document.getElementById('homeWeightTxt').textContent = weights.length ? `${weights.length} מדידות` : 'עדיין אין מדידות';
+
+            const kcal = data.menu
+                .filter(m => m.date && m.date.startsWith(today))
+                .reduce((sum, m) => sum + (parseFloat(m.cal) || 0), 0);
+            document.getElementById('homeCalTxt').textContent = `${kcal} מתוך ${CALORIE_GOAL}`;
+            document.getElementById('homeCalBar').style.width = Math.min(100, kcal / CALORIE_GOAL * 100) + '%';
+
+            document.getElementById('homePhotoTxt').textContent = `${data.photos.length} בגלריה`;
+        }
+
+        function tapWater(i) {
+            const data = getData();
+            const key = todayKey();
+            const current = data.water[key] || 0;
+            data.water[key] = (i + 1 === current) ? i : i + 1;
+            saveData(data);
+            renderHome();
+        }
+
+        function addHomeTask() {
+            const input = document.getElementById('homeTask');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ הכנס שם');
+                return;
+            }
+            const data = getData();
+            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL') });
+            saveData(data);
+            input.value = '';
+            displayTasks();
+        }
+
+        function addHomeWeight() {
+            const input = document.getElementById('homeWeight');
+            if (!input.value) {
+                showError('⚠️ הכנס משקל');
+                return;
+            }
+            const data = getData();
+            data.weights.push({ val: parseFloat(input.value), time: new Date().toLocaleString('he-IL'), ts: Date.now() });
+            saveData(data);
+            input.value = '';
+            displayWeight();
+            showSuccess('✅ שמור!');
         }
 
         let selectedPhotoFile = null;
@@ -619,6 +809,7 @@
         }
 
         function displayMenu() {
+            renderHome();
             const data = getData();
             const list = document.getElementById('menuList');
             if (data.menu.length === 0) {
@@ -686,7 +877,8 @@
             const dateObj = document.getElementById('weightDate').value ? new Date(document.getElementById('weightDate').value) : new Date();
             data.weights.push({
                 val: parseFloat(value),
-                time: dateObj.toLocaleString('he-IL')
+                time: dateObj.toLocaleString('he-IL'),
+                ts: dateObj.getTime()
             });
             saveData(data);
             document.getElementById('weightValue').value = '';
@@ -695,6 +887,7 @@
         }
 
         function displayWeight() {
+            renderHome();
             const data = getData();
             const list = document.getElementById('weightList');
             if (data.weights.length === 0) {
@@ -751,6 +944,7 @@
         }
 
         function displayTasks() {
+            renderHome();
             const data = getData();
             const list = document.getElementById('tasksList');
             if (data.tasks.length === 0) {
