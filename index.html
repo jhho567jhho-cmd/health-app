@@ -336,6 +336,9 @@
         .cal-day i { position: absolute; bottom: 3px; left: 50%; margin-left: -9px; min-width: 18px; font-style: normal; font-size: 10px; line-height: 14px; background: #ff6b9d; color: white; border-radius: 7px; }
         .cal-day-title { font-size: 15px; font-weight: 700; margin: 16px 0 6px; }
 
+        .auth-input { padding: 14px; border: none; border-radius: 8px; font-size: 16px; width: 100%; text-align: left; }
+        .auth-msg { min-height: 20px; font-size: 14px; line-height: 1.5; }
+
     </style>
 </head>
 <body>
@@ -345,8 +348,11 @@
             <h1>💪 בריאות וכושר</h1>
             <p>אפליקציה משותפת עבור חיים ודבורה</p>
             <div class="login-buttons">
-                <button class="login-btn chaim" onclick="login('chaim')">👨 כניסה כחיים</button>
-                <button class="login-btn devorah" onclick="login('devorah')">👩 כניסה כדבורה</button>
+                <input class="auth-input" type="email" id="authEmail" placeholder="אימייל" autocomplete="email" dir="ltr">
+                <input class="auth-input" type="password" id="authPassword" placeholder="סיסמה (לפחות 6 תווים)" autocomplete="current-password" dir="ltr" onkeydown="if (event.key === 'Enter') signIn()">
+                <button class="login-btn chaim" onclick="signIn()">כניסה</button>
+                <button class="login-btn devorah" onclick="signUp()">הרשמה ראשונה</button>
+                <div class="auth-msg" id="authMsg"></div>
             </div>
         </div>
     </div>
@@ -573,6 +579,7 @@
         <button class="nav-btn" data-nav="more" onclick="showSection('more', 'more')"><b>☰</b>עוד</button>
     </nav>
 
+    <script src="vendor/supabase.js"></script>
     <script>
         let currentUser = null;
         const DATA_KEY = 'health-app-data-v6';
@@ -594,46 +601,224 @@
             'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה'
         };
 
-        // Login
-        function login(user) {
-            currentUser = user;
+        // Supabase. The anon key is public by design; Row Level Security limits each
+        // signed-in user to their own couple's rows.
+        const SUPABASE_URL = 'https://iewlhdcinmktrzepjstc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlld2xoZGNpbm1rdHJ6ZXBqc3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDk4MDQsImV4cCI6MjEwNTgyNTgwNH0.xpYdNmq-j7Qkj5IYWWu9sxIB-gI2r9n-SXZjGB-9vGI';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let userId = null;
+        let coupleId = null;
+        let members = [];
+        let realtime = null;
+
+        // Shared data, loaded from Supabase. Photos and tips stay on this device.
+        const cloud = { tasks: [], shopping: [], weights: [], menu: [], water: {} };
+
+        const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
+
+        function memberKey(uid) {
+            const m = members.find(x => x.user_id === uid);
+            return m ? (NAME_KEYS[m.display_name] || 'both') : 'both';
+        }
+
+        function memberUserId(key) {
+            const m = members.find(x => NAME_KEYS[x.display_name] === key);
+            return m ? m.user_id : null;
+        }
+
+        // table -> [cache key, order column, row mapper]
+        const CLOUD_TABLES = {
+            task_items: ['tasks', 'created_at', r => ({
+                id: r.id, name: r.title, completed: r.done, due: r.due_date || '', who: memberKey(r.assigned_to),
+                doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL')
+            })],
+            shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done })],
+            weight_entries: ['weights', 'measured_at', r => ({
+                id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
+            })],
+            meal_logs: ['menu', 'eaten_at', r => ({
+                id: r.id, name: r.name, cal: r.calories, cat: r.category || '', date: new Date(r.eaten_at).toLocaleString('he-IL')
+            })],
+            water_logs: ['water', 'day', null]
+        };
+
+        async function loadTable(table) {
+            const [key, order, map] = CLOUD_TABLES[table];
+            const { data, error } = await sb.from(table).select('*').order(order);
+            if (error) {
+                console.error(table, error);
+                return;
+            }
+            if (table === 'water_logs') {
+                cloud.water = {};
+                data.forEach(r => { cloud.water[new Date(r.day + 'T00:00').toLocaleDateString('he-IL')] = r.glasses; });
+            } else {
+                cloud[key] = data.map(map);
+            }
+        }
+
+        function loadAll() {
+            return Promise.all(Object.keys(CLOUD_TABLES).map(loadTable));
+        }
+
+        function refreshViews() {
+            displayTasks();
+            displayShopping();
+            displayWeight();
+            displayMenu();
+        }
+
+        // Every change is shown right away, then saved; the table is reloaded so
+        // the screen matches what is really stored.
+        async function cloudWrite(request, table) {
+            const { error } = await request;
+            if (error) {
+                console.error(table, error);
+                showError('❌ לא נשמר, נסה שוב');
+            }
+            await loadTable(table);
+            refreshViews();
+        }
+
+        function subscribeRealtime() {
+            if (realtime) sb.removeChannel(realtime);
+            realtime = sb.channel('couple-' + coupleId);
+            Object.keys(CLOUD_TABLES).forEach(table => {
+                realtime.on('postgres_changes', { event: '*', schema: 'public', table: table }, () => {
+                    loadTable(table).then(refreshViews);
+                });
+            });
+            realtime.subscribe();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && coupleId) loadAll().then(refreshViews);
+        });
+
+        // Sign-in
+        function setAuthMsg(msg) {
+            document.getElementById('authMsg').textContent = msg;
+        }
+
+        function authFields() {
+            return {
+                email: document.getElementById('authEmail').value.trim().toLowerCase(),
+                password: document.getElementById('authPassword').value
+            };
+        }
+
+        async function signIn() {
+            const { email, password } = authFields();
+            if (!email || !password) {
+                setAuthMsg('⚠️ הכנס אימייל וסיסמה');
+                return;
+            }
+            setAuthMsg('⏳ מתחבר...');
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) {
+                setAuthMsg(/confirm/i.test(error.message)
+                    ? '📧 צריך קודם לאשר את המייל (בדוק בתיבת הדואר)'
+                    : '❌ אימייל או סיסמה שגויים');
+            }
+        }
+
+        async function signUp() {
+            const { email, password } = authFields();
+            if (!email || password.length < 6) {
+                setAuthMsg('⚠️ אימייל וסיסמה של לפחות 6 תווים');
+                return;
+            }
+            setAuthMsg('⏳ נרשם...');
+            const { data, error } = await sb.auth.signUp({
+                email, password, options: { emailRedirectTo: location.origin + location.pathname }
+            });
+            if (error) {
+                setAuthMsg('❌ ' + error.message);
+            } else if (!data.session) {
+                setAuthMsg('📧 נשלח אליך מייל אישור. אשר אותו, חזור לכאן ולחץ "כניסה".');
+            }
+        }
+
+        async function logout() {
+            await sb.auth.signOut();
+        }
+
+        // Supabase recommends not awaiting its own calls inside this callback.
+        sb.auth.onAuthStateChange((event, session) => {
+            setTimeout(() => handleSession(session), 0);
+        });
+
+        async function handleSession(session) {
+            if (!session) {
+                showLogin();
+                return;
+            }
+            if (session.user.id === userId && coupleId) return;
+            userId = session.user.id;
+            setAuthMsg('⏳ טוען...');
+
+            const { data: couple, error } = await sb.rpc('join_couple');
+            if (error) {
+                const msg = /not allowed/.test(error.message)
+                    ? '⛔ המייל הזה לא מורשה באפליקציה'
+                    : '❌ שגיאה בחיבור: ' + error.message;
+                await sb.auth.signOut();
+                setAuthMsg(msg);
+                return;
+            }
+            coupleId = couple;
+            const { data: memberRows } = await sb.from('couple_members').select('user_id, display_name');
+            members = memberRows || [];
+            await loadAll();
+            subscribeRealtime();
+            enterApp();
+        }
+
+        function enterApp() {
+            currentUser = memberKey(userId);
+            setAuthMsg('');
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appContainer').classList.add('active');
-            document.getElementById('currentUser').textContent = user === 'chaim' ? '👨 חיים' : '👩 דבורה';
+            document.getElementById('currentUser').textContent = WHO[currentUser] || '';
             displayPhotos();
-            displayMenu();
             displayTips();
-            displayWeight();
-            displayTasks();
+            refreshViews();
             initWeightDate();
-            displayShopping();
             document.getElementById('taskDue').value = isoDay(new Date());
             showSection('home', 'home');
         }
 
-        function logout() {
+        function showLogin() {
+            userId = null;
+            coupleId = null;
             currentUser = null;
+            if (realtime) {
+                sb.removeChannel(realtime);
+                realtime = null;
+            }
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('appContainer').classList.remove('active');
         }
 
-        // Local Data Functions (localStorage)
-        function getData() {
+        // Local-only data (photos, tips). Older versions also kept tasks etc. here;
+        // those fields are left untouched.
+        function getLocal() {
             try {
-                const data = localStorage.getItem(DATA_KEY);
-                return Object.assign(getDefaultData(), data ? JSON.parse(data) : {});
+                return JSON.parse(localStorage.getItem(DATA_KEY)) || {};
             } catch (e) {
-                return getDefaultData();
+                return {};
             }
         }
 
-        function getDefaultData() {
-            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [], water: {}, shopping: [] };
+        function getData() {
+            const local = getLocal();
+            return { photos: local.photos || [], aiTips: local.aiTips || [], ...cloud };
         }
 
         function saveData(data) {
             try {
-                localStorage.setItem(DATA_KEY, JSON.stringify(data));
+                localStorage.setItem(DATA_KEY, JSON.stringify({ ...getLocal(), photos: data.photos, aiTips: data.aiTips }));
             } catch (e) {
                 showError('❌ שגיאה בשמירה');
             }
@@ -738,11 +923,8 @@
                 showError('⚠️ הכנס שם');
                 return;
             }
-            const data = getData();
-            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL'), due: calSelected, who: 'both' });
-            saveData(data);
             input.value = '';
-            displayTasks();
+            createTask(name, calSelected, 'both');
         }
 
         // Shopping list
@@ -763,32 +945,33 @@
                 showError('⚠️ מה לקנות?');
                 return;
             }
-            const data = getData();
-            data.shopping.push({ name: name, done: false, ts: Date.now() });
-            saveData(data);
             input.value = '';
+            cloud.shopping.push({ name: name, done: false });
             displayShopping();
+            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name }), 'shopping_items');
         }
 
         function toggleShopping(index) {
-            const data = getData();
-            data.shopping[index].done = !data.shopping[index].done;
-            saveData(data);
+            const item = cloud.shopping[index];
+            if (!item.id) return;
+            item.done = !item.done;
             displayShopping();
+            cloudWrite(sb.from('shopping_items').update({
+                done: item.done, done_at: item.done ? new Date().toISOString() : null
+            }).eq('id', item.id), 'shopping_items');
         }
 
         function deleteShopping(index) {
-            const data = getData();
-            data.shopping.splice(index, 1);
-            saveData(data);
+            const [item] = cloud.shopping.splice(index, 1);
             displayShopping();
+            if (item.id) cloudWrite(sb.from('shopping_items').delete().eq('id', item.id), 'shopping_items');
         }
 
         function clearBought() {
-            const data = getData();
-            data.shopping = data.shopping.filter(item => !item.done);
-            saveData(data);
+            const ids = cloud.shopping.filter(item => item.done && item.id).map(item => item.id);
+            cloud.shopping = cloud.shopping.filter(item => !item.done);
             displayShopping();
+            if (ids.length) cloudWrite(sb.from('shopping_items').delete().in('id', ids), 'shopping_items');
         }
 
         function displayShopping() {
@@ -878,12 +1061,21 @@
         }
 
         function tapWater(i) {
-            const data = getData();
-            const key = todayKey();
-            const current = data.water[key] || 0;
-            data.water[key] = (i + 1 === current) ? i : i + 1;
-            saveData(data);
+            const current = cloud.water[todayKey()] || 0;
+            const glasses = (i + 1 === current) ? i : i + 1;
+            cloud.water[todayKey()] = glasses;
             renderHome();
+            cloudWrite(sb.from('water_logs').upsert({
+                couple_id: coupleId, user_id: userId, day: isoDay(new Date()), glasses: glasses, updated_at: new Date().toISOString()
+            }), 'water_logs');
+        }
+
+        function createTask(name, due, who) {
+            cloud.tasks.push({ name: name, completed: false, due: due, who: who, doneDay: '', date: new Date().toLocaleString('he-IL') });
+            displayTasks();
+            cloudWrite(sb.from('task_items').insert({
+                couple_id: coupleId, created_by: userId, title: name, due_date: due || null, assigned_to: memberUserId(who)
+            }), 'task_items');
         }
 
         function addHomeTask() {
@@ -893,11 +1085,8 @@
                 showError('⚠️ הכנס שם');
                 return;
             }
-            const data = getData();
-            data.tasks.push({ name: name, completed: false, date: new Date().toLocaleString('he-IL'), due: isoDay(new Date()), who: currentUser || 'both' });
-            saveData(data);
             input.value = '';
-            displayTasks();
+            createTask(name, isoDay(new Date()), currentUser || 'both');
         }
 
         function addHomeWeight() {
@@ -906,11 +1095,8 @@
                 showError('⚠️ הכנס משקל');
                 return;
             }
-            const data = getData();
-            data.weights.push({ val: parseFloat(input.value), time: new Date().toLocaleString('he-IL'), ts: Date.now() });
-            saveData(data);
+            createWeight(parseFloat(input.value), new Date());
             input.value = '';
-            displayWeight();
             showSuccess('✅ שמור!');
         }
 
@@ -1030,19 +1216,15 @@
                 showError('⚠️ מלא הכל');
                 return;
             }
-            const data = getData();
-            data.menu.push({
-                name: name,
-                cal: cal,
-                cat: cat,
-                date: new Date().toLocaleString('he-IL')
-            });
-            saveData(data);
+            cloud.menu.push({ name: name, cal: cal, cat: cat, date: new Date().toLocaleString('he-IL') });
             document.getElementById('menuName').value = '';
             document.getElementById('menuCal').value = '';
             document.getElementById('menuCat').value = '';
             displayMenu();
             showSuccess('✅ נוסף!');
+            cloudWrite(sb.from('meal_logs').insert({
+                couple_id: coupleId, created_by: userId, name: name, calories: parseInt(cal, 10) || 0, category: cat
+            }), 'meal_logs');
         }
 
         function displayMenu() {
@@ -1064,10 +1246,9 @@
         }
 
         function deleteMenuItem(index) {
-            const data = getData();
-            data.menu.splice(index, 1);
-            saveData(data);
+            const [item] = cloud.menu.splice(index, 1);
             displayMenu();
+            if (item.id) cloudWrite(sb.from('meal_logs').delete().eq('id', item.id), 'meal_logs');
         }
 
         function generateTip() {
@@ -1104,22 +1285,23 @@
             displayTips();
         }
 
+        function createWeight(value, when) {
+            cloud.weights.push({ val: value, time: when.toLocaleString('he-IL'), ts: when.getTime() });
+            displayWeight();
+            cloudWrite(sb.from('weight_entries').insert({
+                couple_id: coupleId, created_by: userId, value: value, measured_at: when.toISOString()
+            }), 'weight_entries');
+        }
+
         function addWeight() {
             const value = document.getElementById('weightValue').value;
             if (!value) {
                 showError('⚠️ הכנס משקל');
                 return;
             }
-            const data = getData();
-            const dateObj = document.getElementById('weightDate').value ? new Date(document.getElementById('weightDate').value) : new Date();
-            data.weights.push({
-                val: parseFloat(value),
-                time: dateObj.toLocaleString('he-IL'),
-                ts: dateObj.getTime()
-            });
-            saveData(data);
+            const dateValue = document.getElementById('weightDate').value;
+            createWeight(parseFloat(value), dateValue ? new Date(dateValue) : new Date());
             document.getElementById('weightValue').value = '';
-            displayWeight();
             showSuccess('✅ שמור!');
         }
 
@@ -1156,10 +1338,9 @@
         }
 
         function deleteWeight(index) {
-            const data = getData();
-            data.weights.splice(index, 1);
-            saveData(data);
+            const [item] = cloud.weights.splice(index, 1);
             displayWeight();
+            if (item.id) cloudWrite(sb.from('weight_entries').delete().eq('id', item.id), 'weight_entries');
         }
 
         function addTask() {
@@ -1168,17 +1349,8 @@
                 showError('⚠️ הכנס שם');
                 return;
             }
-            const data = getData();
-            data.tasks.push({
-                name: name,
-                completed: false,
-                date: new Date().toLocaleString('he-IL'),
-                due: document.getElementById('taskDue').value,
-                who: document.getElementById('taskWho').value
-            });
-            saveData(data);
             document.getElementById('taskName').value = '';
-            displayTasks();
+            createTask(name, document.getElementById('taskDue').value, document.getElementById('taskWho').value);
             showSuccess('✅ נוסף!');
         }
 
@@ -1207,19 +1379,20 @@
         }
 
         function toggleTask(index) {
-            const data = getData();
-            const task = data.tasks[index];
+            const task = cloud.tasks[index];
+            if (!task.id) return;
             task.completed = !task.completed;
             task.doneDay = task.completed ? isoDay(new Date()) : '';
-            saveData(data);
             displayTasks();
+            cloudWrite(sb.from('task_items').update({
+                done: task.completed, done_at: task.completed ? new Date().toISOString() : null
+            }).eq('id', task.id), 'task_items');
         }
 
         function deleteTask(index) {
-            const data = getData();
-            data.tasks.splice(index, 1);
-            saveData(data);
+            const [task] = cloud.tasks.splice(index, 1);
             displayTasks();
+            if (task.id) cloudWrite(sb.from('task_items').delete().eq('id', task.id), 'task_items');
         }
 
         function openAI(question) {

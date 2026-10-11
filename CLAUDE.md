@@ -16,9 +16,11 @@
 ## Project Status
 - Repository: `jhho567jhho-cmd/health-app`
 - Working branch: `claude/project-summary-5jpnkw`
-- Live (phone install, local data only): https://health-app-web-umber.vercel.app/
-- Done: PWA install support, shared-notes leftovers removed, home screen prototype in `prototype/home.html`.
-- Next: approve design, connect Supabase (project `iewlhdcinmktrzepjstc`, status being restored), sign-in for both partners, shared data.
+- Live: https://health-app-web-umber.vercel.app/ (Vercel project `health-app-web`, deployed from this branch)
+- Data: Supabase project `iewlhdcinmktrzepjstc`. Tasks, shopping, water, weight and meals sync between both partners; photos and tips stay on each device.
+- Sign-in: email + password. Only emails in `public.allowed_members` can join (see `supabase/migrations`). Personal emails are not stored in the repo.
+- The Supabase connector cannot run schema changes in these sessions; new SQL goes in `supabase/migrations/` and is run in the Supabase SQL Editor.
+- `vendor/supabase.js` is supabase-js 2.45.4 (UMD), bundled so the app does not depend on a CDN.
 
 ## Important Context
 This is a collaborative project between Chaim and his wife Devorah. When working on features, consider both of their perspectives and needs.
