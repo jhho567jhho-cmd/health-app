@@ -560,6 +560,7 @@
             <div id="tasks" class="tab-content">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">✅ משימות</h2>
                 <button class="new-task-btn" onclick="openTaskSheet(null)">+ אירוע חדש</button>
+                <div class="chips" id="taskFilters"></div>
                 <div id="tasksList"></div>
             </div>
 
@@ -1627,17 +1628,34 @@
 
 
 
+        const TASK_FILTERS = [['all', 'הכל'], ['today', 'היום'], ['in_progress', 'בביצוע'], ['done', 'הושלמו']];
+        let taskFilter = 'all';
+
+        function setTaskFilter(key) {
+            taskFilter = key;
+            displayTasks();
+        }
+
+        function matchesTaskFilter(t, today) {
+            if (taskFilter === 'today') return !t.completed && t.due === today;
+            if (taskFilter === 'in_progress') return !t.completed && t.status === 'in_progress';
+            if (taskFilter === 'done') return t.completed;
+            return true;
+        }
+
         function displayTasks() {
             renderHome();
             renderCalendar();
             const data = getData();
             const list = document.getElementById('tasksList');
-            if (data.tasks.length === 0) {
+            const today = isoDay(new Date());
+            document.getElementById('taskFilters').innerHTML = TASK_FILTERS
+                .map(([key, label]) => `<button class="chip ${taskFilter === key ? 'on' : ''}" onclick="setTaskFilter('${key}')">${label}</button>`).join('');
+            const items = data.tasks.map((t, i) => ({ ...t, i })).filter(t => matchesTaskFilter(t, today));
+            if (items.length === 0) {
                 list.innerHTML = '<div class="empty-state">אין משימות</div>';
                 return;
             }
-            const today = isoDay(new Date());
-            const items = data.tasks.map((t, i) => ({ ...t, i }));
             const groups = [
                 ['⚠️ באיחור', items.filter(t => !t.completed && t.due && t.due < today)],
                 ['📌 היום', items.filter(t => !t.completed && t.due === today).sort(byTime)],
