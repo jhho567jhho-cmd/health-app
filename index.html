@@ -343,6 +343,8 @@
         .staple-group summary { font-weight: 600; font-size: 14px; cursor: pointer; }
         .staple-group summary b { background: #2e9e6a; color: white; border-radius: 10px; padding: 0 7px; font-size: 12px; margin-right: 6px; }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .chip-pair { display: inline-flex; align-items: center; gap: 2px; }
+        .chip-del { width: auto; padding: 4px 8px; border-radius: 12px; background: none; color: #999; font-size: 13px; box-shadow: none !important; transform: none !important; }
         .chip { width: auto; padding: 7px 12px; border-radius: 16px; background: #f0f2fb; color: #333; font-size: 13px; font-weight: 500; box-shadow: none !important; transform: none !important; }
         .chip.on { background: #2e9e6a; color: white; }
         .sheet .chip.on { background: #d97706; }
@@ -1282,7 +1284,7 @@
         }
 
         function removeFromCategory(name, title) {
-            if (!confirm(`למחוק את "${name}" מהקטגוריה?`)) return;
+            if (!confirm(`למחוק את "${name}" מהקטגוריה בלבד? הפריט לא יימחק מרשימת הקניות.`)) return;
             const row = cloud.catalog.find(c => c.category === title && c.name === name);
             if (row && row.id) cloudWrite(sb.from('shopping_catalog').delete().eq('id', row.id), 'shopping_catalog');
         }
@@ -1318,7 +1320,7 @@
                         <summary>${title}${count ? `<b>${count}</b>` : ''}</summary>
                         <div class="chips">
                             ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
-                            ${saved.map(c => `<button class="chip ${onList.has(c.name) ? 'on' : ''}" data-name="${esc(c.name)}" data-cat="${esc(title)}" onclick="toggleCatalogChip(this.dataset.name, this.dataset.cat)" oncontextmenu="event.preventDefault(); removeFromCategory(this.dataset.name, this.dataset.cat)">${onList.has(c.name) ? '✓ ' : ''}${c.name}</button>`).join('')}
+                            ${saved.map(c => `<span class="chip-pair"><button class="chip ${onList.has(c.name) ? 'on' : ''}" data-name="${esc(c.name)}" data-cat="${esc(title)}" onclick="toggleCatalogChip(this.dataset.name, this.dataset.cat)">${onList.has(c.name) ? '✓ ' : ''}${c.name}</button><button class="chip-del" data-name="${esc(c.name)}" data-cat="${esc(title)}" onclick="removeFromCategory(this.dataset.name, this.dataset.cat)" aria-label="מחק מהקטגוריה">✕</button></span>`).join('')}
                             ${extra.map(item => `<button class="chip on" data-name="${esc(item.name)}" data-cat="${esc(title)}" onclick="toggleCatalogChip(this.dataset.name, this.dataset.cat)">✓ ${item.name}</button>`).join('')}
                         </div>
                         <div class="home-add" style="margin-top: 10px;">
