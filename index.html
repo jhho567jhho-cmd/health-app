@@ -339,6 +339,13 @@
         .auth-input { padding: 14px; border: none; border-radius: 8px; font-size: 16px; width: 100%; text-align: left; }
         .auth-msg { min-height: 20px; font-size: 14px; line-height: 1.5; }
 
+        .staple-group { background: white; border: 1px solid #e7e9f2; border-radius: 12px; margin-bottom: 8px; padding: 10px 12px; }
+        .staple-group summary { font-weight: 600; font-size: 14px; cursor: pointer; }
+        .staple-group summary b { background: #2e9e6a; color: white; border-radius: 10px; padding: 0 7px; font-size: 12px; margin-right: 6px; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .chip { width: auto; padding: 7px 12px; border-radius: 16px; background: #f0f2fb; color: #333; font-size: 13px; font-weight: 500; box-shadow: none !important; transform: none !important; }
+        .chip.on { background: #2e9e6a; color: white; }
+
     </style>
 </head>
 <body>
@@ -567,6 +574,8 @@
                     <button onclick="addShopping('shopInput')">+ הוסף</button>
                 </div>
                 <div id="shoppingList"></div>
+                <div class="group-title">📋 מוצרי יסוד: לחיצה מוסיפה לרשימה, לחיצה נוספת מורידה</div>
+                <div id="staples"></div>
             </div>
         </div>
     </div>
@@ -938,6 +947,56 @@
             `;
         }
 
+        // Household staples for a couple. One tap adds to the shopping list, another removes it.
+        const STAPLES = [
+            ['🥛 חלב, גבינות וביצים', ['חלב', 'ביצים', 'קוטג׳', 'גבינה לבנה', 'גבינה צהובה', 'גבינת שמנת', 'גבינה בולגרית', 'יוגורט', 'מעדנים', 'לבן', 'חמאה', 'שמנת מתוקה', 'שמנת לבישול', 'שמנת חמוצה', 'חלב סויה / שקדים']],
+            ['🍞 לחם ומאפים', ['לחם', 'לחם מלא', 'חלה', 'פיתות', 'לחמניות', 'טורטיות', 'קרקרים', 'פריכיות', 'פירורי לחם']],
+            ['🥬 ירקות', ['עגבניות', 'מלפפונים', 'בצל', 'בצל ירוק', 'שום', 'תפוחי אדמה', 'בטטה', 'גזר', 'פלפל אדום', 'פלפל ירוק', 'חסה', 'כרוב', 'קישואים', 'חצילים', 'פטריות', 'אבוקדו', 'לימונים', 'פטרוזיליה', 'כוסברה', 'שמיר', 'נענע', 'ברוקולי', 'כרובית', 'סלק']],
+            ['🍎 פירות', ['תפוחים', 'בננות', 'תפוזים', 'קלמנטינות', 'אגסים', 'ענבים', 'תותים', 'אבטיח / מלון', 'פירות העונה', 'תמרים']],
+            ['🥩 בשר, עוף ודגים', ['חזה עוף', 'שוקיים / כרעיים', 'עוף שלם', 'שניצל', 'בשר טחון', 'בשר לבישול', 'נקניקיות', 'פסטרמה / נקניק', 'סלמון', 'פילה דג', 'כבד עוף']],
+            ['🥫 מזווה', ['אורז', 'פסטה', 'ספגטי', 'קוסקוס', 'פתיתים', 'בורגול', 'קינואה', 'קמח', 'סוכר', 'מלח', 'שמן קנולה', 'שמן זית', 'חומץ', 'רסק עגבניות', 'עגבניות מרוסקות', 'טונה', 'תירס', 'חומוס (שימורים)', 'עדשים', 'שעועית', 'אפונה (שימורים)', 'זיתים', 'מלפפונים חמוצים', 'טחינה', 'דבש', 'ריבה', 'ממרח שוקולד', 'חמאת בוטנים', 'קורנפלקס', 'שיבולת שועל', 'אגוזים ושקדים', 'אבקת אפייה', 'שמרים', 'וניל']],
+            ['☕ קפה ושתייה', ['קפה', 'קפה נמס', 'קפסולות קפה', 'תה', 'תה צמחים', 'קקאו', 'מים מינרליים', 'סודה', 'מיץ', 'מיץ ענבים', 'סירופ פטל']],
+            ['🧂 תבלינים ורטבים', ['פלפל שחור', 'פפריקה', 'כמון', 'כורכום', 'קינמון', 'אורגנו', 'אבקת מרק', 'שום גבישי', 'קטשופ', 'מיונז', 'חרדל', 'רוטב סויה', 'רוטב צ׳ילי', 'חריסה', 'סילאן']],
+            ['🧊 קפואים', ['ירקות קפואים', 'אפונה קפואה', 'שעועית ירוקה קפואה', 'בורקס', 'מלאווח', 'פיצה קפואה', 'בצק עלים', 'גלידה', 'פירות קפואים']],
+            ['🍫 חטיפים ומתוקים', ['שוקולד', 'ביסקוויטים', 'עוגיות', 'וופלים', 'במבה', 'ביסלי', 'צ׳יפס', 'פופקורן', 'גרעינים', 'בייגלה', 'חטיפי אנרגיה', 'עוגה']],
+            ['🧻 ניקיון ובית', ['נייר טואלט', 'מגבות נייר', 'טישו', 'סבון כלים', 'טבליות למדיח', 'אבקת / ג׳ל כביסה', 'מרכך כביסה', 'אקונומיקה', 'נוזל לניקוי רצפה', 'ספוגים', 'מטליות', 'שקיות זבל', 'נייר כסף', 'ניילון נצמד', 'נייר אפייה', 'שקיות אוכל', 'סוללות', 'נורות']],
+            ['🧴 טיפוח והיגיינה', ['שמפו', 'מרכך שיער', 'סבון גוף', 'סבון ידיים', 'משחת שיניים', 'מברשות שיניים', 'חוט דנטלי', 'דאודורנט', 'קרם לחות', 'קרם הגנה', 'סכיני גילוח', 'צמר גפן', 'מגבונים', 'פלסטרים']]
+        ];
+
+        function addShoppingName(name) {
+            cloud.shopping.push({ name: name, done: false });
+            displayShopping();
+            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name }), 'shopping_items');
+        }
+
+        function toggleStaple(groupIndex, itemIndex) {
+            const name = STAPLES[groupIndex][1][itemIndex];
+            const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
+            if (index >= 0) {
+                deleteShopping(index);
+            } else {
+                addShoppingName(name);
+            }
+        }
+
+        function renderStaples() {
+            const container = document.getElementById('staples');
+            // Keep open groups open across re-renders.
+            const openGroups = new Set([...container.querySelectorAll('.staple-group[open]')].map(d => d.dataset.group));
+            const onList = new Set(cloud.shopping.filter(item => !item.done).map(item => item.name));
+            container.innerHTML = STAPLES.map(([title, items], gi) => {
+                const count = items.filter(name => onList.has(name)).length;
+                return `
+                    <details class="staple-group" data-group="${gi}" ${openGroups.has(String(gi)) ? 'open' : ''}>
+                        <summary>${title}${count ? `<b>${count}</b>` : ''}</summary>
+                        <div class="chips">
+                            ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
+                        </div>
+                    </details>
+                `;
+            }).join('');
+        }
+
         function addShopping(inputId) {
             const input = document.getElementById(inputId);
             const name = input.value.trim();
@@ -946,9 +1005,7 @@
                 return;
             }
             input.value = '';
-            cloud.shopping.push({ name: name, done: false });
-            displayShopping();
-            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name }), 'shopping_items');
+            addShoppingName(name);
         }
 
         function toggleShopping(index) {
@@ -976,6 +1033,7 @@
 
         function displayShopping() {
             renderHome();
+            renderStaples();
             const data = getData();
             const items = data.shopping.map((item, i) => ({ ...item, i }));
             const open = items.filter(item => !item.done);
