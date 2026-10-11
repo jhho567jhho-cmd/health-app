@@ -979,6 +979,7 @@
 
         // New / edit task sheet
         const QUICK_TASKS = ['קניות', 'ניקיון הבית', 'כביסה', 'בישול', 'תור לרופא', 'תור לקוסמטיקאית', 'תור לעיסוי', 'אימון', 'הליכה', 'תשלום חשבונות', 'להתקשר', 'סידורים'];
+        const DEVORAH_ONLY_TASKS = ['תור לקוסמטיקאית'];
         let editingTask = null;
         let sheetVisibility = 'shared';
         let sheetWho = 'both';
@@ -1005,7 +1006,8 @@
             // Only the author can make a task private (the database enforces this too).
             document.getElementById('tsPrivate').disabled = !!t && t.createdBy !== userId;
             document.getElementById('tsTitleChips').innerHTML = QUICK_TASKS
-                .map(q => `<button class="chip" onclick="document.getElementById('tsTitle').value = '${q}'">${q}</button>`).join('');
+                .filter(q => currentUser === 'devorah' || !DEVORAH_ONLY_TASKS.includes(q))
+                .map(q =>`<button class="chip" onclick="document.getElementById('tsTitle').value = '${q}'">${q}</button>`).join('');
             sheetWho = t ? t.who : 'both';
             setTaskVisibility(t && t.isPrivate ? 'private' : 'shared');
             document.getElementById('taskSheet').classList.add('open');
