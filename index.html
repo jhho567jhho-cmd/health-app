@@ -744,7 +744,7 @@
             })],
             shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done, category: r.category || '' })],
             shopping_catalog: ['catalog', 'created_at', r => ({ id: r.id, name: r.name, category: r.category })],
-            couple_settings: ['settings', 'couple_id', r => ({ hidePrivate: r.hide_private })],
+            user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
             weight_entries: ['weights', 'measured_at', r => ({
                 id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
             })],
@@ -976,7 +976,7 @@
             const next = !hidePrivate();
             cloud.settings = [{ hidePrivate: next }];
             refreshViews();
-            cloudWrite(sb.from('couple_settings').upsert({ couple_id: coupleId, hide_private: next, updated_by: userId }), 'couple_settings');
+            cloudWrite(sb.from('user_settings').upsert({ user_id: userId, hide_private: next }), 'user_settings');
         }
 
         function getData() {
