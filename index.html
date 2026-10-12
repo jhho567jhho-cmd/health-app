@@ -981,7 +981,7 @@
 
         function getData() {
             const local = getLocal();
-            const tasks = hidePrivate() ? cloud.tasks.filter(t => !t.isPrivate) : cloud.tasks;
+            const tasks = hidePrivate() ? cloud.tasks.filter(t => !t.isPrivate && t.category !== 'personal' && t.category !== 'appointment') : cloud.tasks;
             return { photos: local.photos || [], aiTips: local.aiTips || [], ...cloud, tasks };
         }
 
