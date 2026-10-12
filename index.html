@@ -361,6 +361,7 @@
         .sheet label { margin: 18px 0 8px; color: #6b7080; font-size: 14px; }
         .sheet .field { width: 100%; padding: 14px 16px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; font-size: 16px; font-family: inherit; direction: rtl; }
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .eye-btn { width: auto; background: none; box-shadow: none !important; padding: 4px 8px; font-size: 18px; }
         .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
         .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .type-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 8px; background: white; color: #555; border: 2px solid #e7e9f2; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: none !important; transform: none !important; }
@@ -400,6 +401,7 @@
             <div class="user-info">
                 <span id="currentUser"></span>
                 <span class="online-status"></span>
+                <button class="eye-btn" id="eyeBtn" onclick="togglePrivacy()" aria-label="הסתר פרטיים">👁️</button>
                 <button class="logout-btn" onclick="logout()">התנתק</button>
             </div>
         </div>
@@ -964,9 +966,20 @@
             }
         }
 
+        let hidePrivate = false;
+        try { hidePrivate = localStorage.getItem('health-app-hide-private') === '1'; } catch (e) {}
+
+        function togglePrivacy() {
+            hidePrivate = !hidePrivate;
+            try { localStorage.setItem('health-app-hide-private', hidePrivate ? '1' : '0'); } catch (e) {}
+            document.getElementById('eyeBtn').textContent = hidePrivate ? '🙈' : '👁️';
+            refreshViews();
+        }
+
         function getData() {
             const local = getLocal();
-            return { photos: local.photos || [], aiTips: local.aiTips || [], ...cloud };
+            const tasks = hidePrivate ? cloud.tasks.filter(t => !t.isPrivate) : cloud.tasks;
+            return { photos: local.photos || [], aiTips: local.aiTips || [], ...cloud, tasks };
         }
 
         function saveData(data) {
