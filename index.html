@@ -514,6 +514,7 @@
                     <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
                     <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
                     <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
+                    <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -601,6 +602,23 @@
                 <div id="dayActivities"></div>
                 <div class="group-title">תרגילי חיזוק לגוף</div>
                 <div id="workoutsList"></div>
+            </div>
+
+            <!-- Fuel Tab -->
+            <div id="fuel" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">⛽ דלק</h2>
+                <div class="input-group">
+                    <label>כמה שילמת (₪):</label>
+                    <input type="number" id="fuelAmount" placeholder="0" min="1" step="1" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <label>תאריך:</label>
+                    <input type="date" id="fuelDate">
+                </div>
+                <button onclick="addFuel()">⛽ רשום תדלוק</button>
+                <div id="fuelSummary"></div>
+                <div id="fuelList"></div>
             </div>
 
             <!-- Tips Tab -->
@@ -796,7 +814,7 @@
         let realtime = null;
 
         // Shared data, loaded from Supabase. Photos and tips stay on this device.
-        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], weights: [], menu: [], water: {} };
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], weights: [], menu: [], water: {} };
 
         const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
 
@@ -823,6 +841,7 @@
             shopping_catalog: ['catalog', 'created_at', r => ({ id: r.id, name: r.name, category: r.category })],
             user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
             workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
+            fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: Number(r.amount), filledOn: r.filled_on, userId: r.user_id })],
             weight_entries: ['weights', 'measured_at', r => ({
                 id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
             })],
@@ -854,6 +873,7 @@
         function refreshViews() {
             document.getElementById('eyeBtn').textContent = hidePrivate() ? '🙈' : '👁️';
             renderWorkouts();
+            renderFuel();
             displayTasks();
             displayShopping();
             displayWeight();
@@ -1162,6 +1182,43 @@
         function addWorkoutToday(index) {
             const w = WORKOUTS[index];
             createTask(`אימון: ${w.name} (${w.reps})`, isoDay(new Date()), 'both');
+        }
+
+        function addFuel() {
+            const amount = parseFloat(document.getElementById('fuelAmount').value);
+            if (!amount || amount <= 0) {
+                showError('⚠️ כתוב כמה שילמת');
+                return;
+            }
+            const day = document.getElementById('fuelDate').value || isoDay(new Date());
+            document.getElementById('fuelAmount').value = '';
+            cloudWrite(sb.from('fuel_logs').insert({ couple_id: coupleId, user_id: userId, amount: amount, filled_on: day }), 'fuel_logs');
+        }
+
+        function removeFuel(id) {
+            if (!confirm('למחוק את התדלוק הזה?')) return;
+            cloudWrite(sb.from('fuel_logs').delete().eq('id', id), 'fuel_logs');
+        }
+
+        function renderFuel() {
+            const dateInput = document.getElementById('fuelDate');
+            if (!dateInput.value) dateInput.value = isoDay(new Date());
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const now = new Date();
+            const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const sum = list => list.reduce((s, f) => s + f.amount, 0);
+            const logs = [...cloud.fuelLogs].sort((a, b) => b.filledOn.localeCompare(a.filledOn));
+            const monthLogs = logs.filter(f => f.filledOn.startsWith(monthPrefix));
+            const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+            document.getElementById('fuelSummary').innerHTML = `
+                <div class="activity-person"><b>החודש</b><div>${money(sum(monthLogs))} · ${monthLogs.length} תדלוקים</div></div>
+                <div class="activity-person"><b>סך הכול</b><div>${money(sum(logs))} · ${logs.length} תדלוקים</div></div>`;
+            document.getElementById('fuelList').innerHTML = logs.length
+                ? logs.map(f => `<div class="activity-row">
+                    <span>${f.filledOn} · ${personName(f.userId)} · ${money(f.amount)}</span>
+                    ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}')">✕</button>` : ''}
+                  </div>`).join('')
+                : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
         }
 
         function exportBackup() {
