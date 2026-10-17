@@ -377,6 +377,7 @@
         .workout-fig .bottle { fill: #9ad0ff; stroke: #2b7bd6; stroke-width: 2; }
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
+        .muted { color: #8a90a2; }
         .workout-who { color: #667eea; font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
         .workout-link { display: inline-block; color: #667eea; font-weight: 700; margin: 4px 0 8px; }
         .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
@@ -438,6 +439,11 @@
                 <div class="home-card">
                     <h3>💧 מים <small id="homeWaterTxt"></small></h3>
                     <div class="glasses" id="homeWater"></div>
+                </div>
+
+                <div class="home-card">
+                    <h3>💪 תרגילים להיום <button class="home-link" onclick="showSection('workouts', 'more')">לתרגילים ←</button></h3>
+                    <div id="homeWorkouts"></div>
                 </div>
 
                 <div class="home-card" id="homeTomorrowCard" style="display: none;">
@@ -1649,6 +1655,14 @@
                 ? '<div class="empty-state">הרשימה ריקה</div>'
                 : openShop.slice(0, 5).map(item => shoppingRow(item, false)).join('')
                   + (openShop.length > 5 ? `<div class="group-title">ועוד ${openShop.length - 5}...</div>` : '');
+
+            const todayIso = isoDay(new Date());
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const todayWorkouts = ['חיים', 'דבורה'].map(name => {
+                const done = cloud.workoutLogs.filter(l => l.doneOn === todayIso && personName(l.userId) === name).map(l => l.exercise);
+                return done.length ? `<div><b>${name}:</b> ${done.join(', ')}</div>` : `<div><b>${name}:</b> <span class="muted">עוד לא סומן</span></div>`;
+            }).join('');
+            document.getElementById('homeWorkouts').innerHTML = todayWorkouts;
 
             const glasses = data.water[today] || 0;
             document.getElementById('homeWaterTxt').textContent = `${glasses} מתוך ${WATER_GOAL} כוסות`;
