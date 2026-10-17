@@ -587,6 +587,8 @@
                         <button onclick="addActivity()">+ רשום</button>
                     </div>
                 </div>
+                <div class="group-title">סיכום</div>
+                <div id="sportSummary"></div>
                 <div class="group-title">מה נרשם ביום שנבחר</div>
                 <div id="dayActivities"></div>
                 <div class="group-title">תרגילי חיזוק לגוף</div>
@@ -1045,6 +1047,7 @@
             if (!dateInput.value) dateInput.value = isoDay(new Date());
             const day = dateInput.value;
             renderDayActivities(day);
+            renderSportSummary();
             const openNames = new Set([...document.querySelectorAll('.workout-card[open]')].map(d => d.dataset.name));
             const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
             const areas = [...new Set(WORKOUTS.map(w => w.area))];
@@ -1087,6 +1090,31 @@
 
         function removeActivity(id) {
             cloudWrite(sb.from('workout_logs').delete().eq('id', id), 'workout_logs');
+        }
+
+        function renderSportSummary() {
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const now = new Date();
+            const keyOf = offset => isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+            const last7 = [...Array(7).keys()].map(keyOf);
+            const activeDays = logs => new Set(logs.map(l => l.doneOn));
+            const streakOf = logs => {
+                const days = activeDays(logs);
+                let offset = days.has(keyOf(0)) ? 0 : 1;
+                let count = 0;
+                while (days.has(keyOf(offset))) { count++; offset++; }
+                return count;
+            };
+            const card = name => {
+                const logs = cloud.workoutLogs.filter(l => personName(l.userId) === name);
+                const week = logs.filter(l => last7.includes(l.doneOn));
+                return `<div class="activity-person"><b>${name}</b>
+                    <div>ב-7 ימים האחרונים: ${activeDays(week).size} ימים פעילים · ${week.length} רישומים</div>
+                    <div>רצף נוכחי: ${streakOf(logs)} ימים</div></div>`;
+            };
+            const together = new Set(cloud.workoutLogs.filter(l => last7.includes(l.doneOn)).map(l => l.doneOn));
+            document.getElementById('sportSummary').innerHTML = card('חיים') + card('דבורה') +
+                `<div class="activity-person"><b>שניכם ביחד</b><div>ב-7 ימים האחרונים: ${together.size} ימים שמישהו מאיתנו היה פעיל</div></div>`;
         }
 
         function renderDayActivities(day) {
