@@ -480,6 +480,7 @@
                     <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
                     <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
                     <button onclick="showSection('tips', 'more')">💡 טיפים</button>
+                    <button onclick="showSection('workouts', 'more')">💪 תרגילי חיזוק</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -544,6 +545,13 @@
                 </div>
                 <button onclick="addMenuItem()">🍽️ הוסף לתפריט</button>
                 <div id="menuList"></div>
+            </div>
+
+            <!-- Workouts Tab -->
+            <div id="workouts" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💪 תרגילי חיזוק לגוף</h2>
+                <div id="workoutsList"></div>
             </div>
 
             <!-- Tips Tab -->
@@ -883,6 +891,41 @@
 
         async function logout() {
             await sb.auth.signOut();
+        }
+
+        const WORKOUTS = [
+            ['רגליים', 'סקוואט', '15 חזרות', 'עומדים עם רגליים ברוחב הכתפיים. יורדים כאילו יושבים על כיסא, שומרים על הגב ישר, וחוזרים לעמידה.'],
+            ['רגליים', 'לאנג׳ אחורי', '10 לכל רגל', 'צעד אחורה עם רגל אחת, יורדים עד שהברך האחורית כמעט נוגעת ברצפה, וחוזרים.'],
+            ['רגליים', 'כיסא קיר', '30 שניות', 'נשענים על הקיר עם ברכיים בזווית של 90 מעלות, ונשארים במקום.'],
+            ['רגליים', 'הרמות עקבים', '20 חזרות', 'עומדים על קצות האצבעות ומרימים את העקבים, ואז יורדים לאט.'],
+            ['חזה וידיים', 'שכיבות שמיכה', '10 חזרות', 'אפשר על הברכיים אם קשה. יורדים עד שהחזה קרוב לרצפה ודוחפים חזרה.'],
+            ['חזה וידיים', 'דחיפה מהקיר', '15 חזרות', 'עומדים מול קיר, ידיים על הקיר בגובה הכתפיים, מתקרבים ודוחפים חזרה.'],
+            ['בטן וליבה', 'פלאנק', '30 שניות', 'תמיכה על האמות ובהונות, גוף ישר מהראש עד העקבים, והבטן מכווצת.'],
+            ['בטן וליבה', 'גשר ישבנים', '15 חזרות', 'שוכבים על הגב עם ברכיים כפופות, דוחפים את האגן למעלה ומחזיקים שנייה.'],
+            ['בטן וליבה', 'ציפור-כלב', '10 לכל צד', 'על הידיים והברכיים, מרימים יד ורגל נגדית ומחזיקים שנייה, ומחליפים.'],
+            ['גב ויציבה', 'סופרמן', '12 חזרות', 'שוכבים על הבטן, מרימים ידיים ורגליים מהרצפה ומחזיקים שנייה.'],
+            ['גב ויציבה', 'משיכת שכמות', '15 חזרות', 'מחזיקים מגבת בשתי ידיים, מושכים את השכמות זו לזו, וחוזרים.'],
+            ['כללי', 'הליכה במקום', '3 דקות', 'הליכה קלה במקום להתחמם לפני התרגילים ולאחריהם.']
+        ];
+
+        function renderWorkouts() {
+            const areas = [...new Set(WORKOUTS.map(w => w[0]))];
+            document.getElementById('workoutsList').innerHTML = areas.map(area => `
+                <div class="group-title">${area}</div>
+                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w[0] === area).map(w => `
+                    <div class="home-row">
+                        <div class="row-main"><span>${w[1]}</span><small>${w[2]} · ${w[3]}</small></div>
+                        <button class="chip" style="width: auto; flex-shrink: 0;" onclick="addWorkoutToday(${w.i})">＋ להיום</button>
+                    </div>
+                `).join('')}
+            `).join('');
+        }
+
+        renderWorkouts();
+
+        function addWorkoutToday(index) {
+            const [, name, reps] = WORKOUTS[index];
+            createTask(`אימון: ${name} (${reps})`, isoDay(new Date()), 'both');
         }
 
         function exportBackup() {
