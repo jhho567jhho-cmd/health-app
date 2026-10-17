@@ -378,6 +378,8 @@
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .muted { color: #8a90a2; }
+        .activity-person { background: white; border: 1px solid #e7e9f2; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+        .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
         .workout-who { color: #667eea; font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
         .workout-link { display: inline-block; color: #667eea; font-weight: 700; margin: 4px 0 8px; }
         .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
@@ -442,7 +444,7 @@
                 </div>
 
                 <div class="home-card">
-                    <h3>💪 תרגילים להיום <button class="home-link" onclick="showSection('workouts', 'more')">לתרגילים ←</button></h3>
+                    <h3>💪 ספורט להיום <button class="home-link" onclick="showSection('workouts', 'more')">לספורט ←</button></h3>
                     <div id="homeWorkouts"></div>
                 </div>
 
@@ -503,7 +505,7 @@
                     <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
                     <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
                     <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
-                    <button onclick="showSection('workouts', 'more')">💪 תרגילי חיזוק</button>
+                    <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -573,11 +575,21 @@
             <!-- Workouts Tab -->
             <div id="workouts" class="tab-content">
                 <button class="back-btn" onclick="goBack()">→ חזרה</button>
-                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💪 תרגילי חיזוק לגוף</h2>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💪 ספורט וחיזוק</h2>
                 <div class="input-group">
-                    <label>תאריך האימון:</label>
+                    <label>תאריך:</label>
                     <input type="date" id="workoutDate" onchange="renderWorkouts()">
                 </div>
+                <div class="input-group">
+                    <label>רישום פעילות (הליכה, ריצה, אופניים, כל דבר):</label>
+                    <div class="home-add">
+                        <input type="text" id="activityName" placeholder="למשל: הליכה 30 דקות" onkeydown="if (event.key === 'Enter') addActivity()">
+                        <button onclick="addActivity()">+ רשום</button>
+                    </div>
+                </div>
+                <div class="group-title">מה נרשם ביום שנבחר</div>
+                <div id="dayActivities"></div>
+                <div class="group-title">תרגילי חיזוק לגוף</div>
                 <div id="workoutsList"></div>
             </div>
 
@@ -1032,6 +1044,7 @@
             const dateInput = document.getElementById('workoutDate');
             if (!dateInput.value) dateInput.value = isoDay(new Date());
             const day = dateInput.value;
+            renderDayActivities(day);
             const openNames = new Set([...document.querySelectorAll('.workout-card[open]')].map(d => d.dataset.name));
             const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
             const areas = [...new Set(WORKOUTS.map(w => w.area))];
@@ -1058,6 +1071,34 @@
                     </details>`;
                 }).join('')}
             `).join('');
+        }
+
+        function addActivity() {
+            const input = document.getElementById('activityName');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ כתוב איזו פעילות');
+                return;
+            }
+            const day = document.getElementById('workoutDate').value || isoDay(new Date());
+            input.value = '';
+            cloudWrite(sb.from('workout_logs').insert({ couple_id: coupleId, user_id: userId, exercise: name, done_on: day }), 'workout_logs');
+        }
+
+        function removeActivity(id) {
+            cloudWrite(sb.from('workout_logs').delete().eq('id', id), 'workout_logs');
+        }
+
+        function renderDayActivities(day) {
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const logs = cloud.workoutLogs.filter(l => l.doneOn === day);
+            document.getElementById('dayActivities').innerHTML = ['חיים', 'דבורה'].map(name => {
+                const mine = logs.filter(l => personName(l.userId) === name);
+                const items = mine.length
+                    ? mine.map(l => `<div class="activity-row"><span>${l.exercise}</span>${l.userId === userId ? `<button class="chip-del" onclick="removeActivity('${l.id}')">✕</button>` : ''}</div>`).join('')
+                    : '<div class="muted">לא נרשם</div>';
+                return `<div class="activity-person"><b>${name}</b>${items}</div>`;
+            }).join('');
         }
 
         function toggleWorkoutLog(index) {
