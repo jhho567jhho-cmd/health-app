@@ -378,6 +378,8 @@
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .muted { color: #8a90a2; }
+        .quick-mark { width: auto; padding: 4px 10px; margin-inline-start: 8px; border-radius: 12px; background: #f0f2fb; color: #667eea; font-size: 16px; box-shadow: none !important; transform: none !important; }
+        .quick-mark.on { background: #2e9e6a; color: white; }
         .muscle-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
         .muscle-chip { background: #eef0ff; color: #4a53b8; border-radius: 12px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
         .subgroup-title { font-weight: 700; color: #6b7080; margin: 14px 0 2px; }
@@ -1066,6 +1068,7 @@
                         <summary>
                             <span>${w.name}${w.back ? ' <i class="back-badge">לגב</i>' : ''}</span>
                             <small>${w.reps}</small>
+                            <button class="quick-mark ${mine ? 'on' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWorkoutLog(${w.i})" aria-label="סמן שעשיתי">${mine ? '✓' : '○'}</button>
                         </summary>
                         ${workoutPair(w.pair)}
                         ${w.link ? `<a class="workout-link" href="${w.link[0]}" target="_blank" rel="noopener">📺 ${w.link[1]}</a>` : ''}
