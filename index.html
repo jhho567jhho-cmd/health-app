@@ -362,6 +362,14 @@
         .sheet .field { width: 100%; padding: 14px 16px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; font-size: 16px; font-family: inherit; direction: rtl; }
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .eye-btn { width: auto; background: none; box-shadow: none !important; padding: 4px 8px; font-size: 18px; }
+        .workout-card { background: white; border: 1px solid #e7e9f2; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+        .workout-card summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; list-style: none; }
+        .workout-card summary small { color: #8a90a2; font-weight: 400; }
+        .workout-fig { width: 100%; max-width: 260px; display: block; margin: 12px auto 4px; }
+        .workout-fig line, .workout-fig circle { stroke: #667eea; stroke-width: 5; stroke-linecap: round; fill: none; }
+        .workout-fig .floor { stroke: #d6d9e6; stroke-width: 2; }
+        .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
+        .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
         .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .type-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 8px; background: white; color: #555; border: 2px solid #e7e9f2; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: none !important; transform: none !important; }
@@ -893,39 +901,77 @@
             await sb.auth.signOut();
         }
 
+        const WORKOUT_FLOOR = 150;
+        const WORKOUT_POSES = {
+            squat: { h: [120, 55], sh: [112, 72], el: [135, 85], wr: [150, 85], hp: [95, 110], kn: [125, 118], an: [100, WORKOUT_FLOOR - 2] },
+            lunge: { h: [100, 25], sh: [100, 50], el: [95, 75], wr: [95, 95], hp: [100, 95], kn: [125, 120], an: [125, WORKOUT_FLOOR - 2], kn2: [85, 138], an2: [60, WORKOUT_FLOOR - 2] },
+            wallSit: { h: [75, 35], sh: [75, 58], el: [95, 75], wr: [110, 75], hp: [75, 100], kn: [115, 100], an: [115, WORKOUT_FLOOR - 2] },
+            heelRaise: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, 140] },
+            wallPushUp: { h: [70, 40], sh: [90, 60], el: [70, 72], wr: [45, 66], hp: [110, 95], kn: [110, 125], an: [110, WORKOUT_FLOOR - 2] },
+            pushUp: { h: [40, 80], sh: [60, 82], el: [60, 118], wr: [60, WORKOUT_FLOOR - 4], hp: [120, 92], kn: [150, 96], an: [180, 112] },
+            plank: { h: [40, 85], sh: [60, 92], el: [60, 130], wr: [95, 130], hp: [120, 100], kn: [155, 104], an: [180, 122] },
+            bridge: { h: [30, 135], sh: [55, 135], el: [70, 140], wr: [90, 140], hp: [100, 110], kn: [130, 112], an: [135, WORKOUT_FLOOR - 4] },
+            birdDog: { h: [55, 80], sh: [70, 95], el: [70, 125], wr: [70, WORKOUT_FLOOR - 4], hp: [120, 95], kn: [125, 125], an: [120, WORKOUT_FLOOR - 4], kn2: [150, 125], an2: [175, 135], arm2: [45, 100] },
+            superman: { h: [40, 110], sh: [65, 108], el: [40, 96], wr: [20, 90], hp: [110, 108], kn: [135, 108], an: [165, 104] },
+            crunch: { h: [50, 112], sh: [75, 112], el: [85, 132], wr: [95, 132], hp: [105, 128], kn: [130, 100], an: [155, 128] },
+            march: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, WORKOUT_FLOOR - 2], kn2: [122, 110], an2: [126, 138] }
+        };
+
+        function workoutFigure(key) {
+            const p = WORKOUT_POSES[key];
+            const seg = (a, b) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;
+            const parts = [
+                `<circle cx="${p.h[0]}" cy="${p.h[1]}" r="11"/>`,
+                seg(p.sh, p.hp),
+                seg(p.sh, p.el), seg(p.el, p.wr),
+                seg(p.hp, p.kn), seg(p.kn, p.an)
+            ];
+            if (p.kn2) parts.push(seg(p.hp, p.kn2), seg(p.kn2, p.an2));
+            if (p.arm2) parts.push(seg(p.sh, p.arm2));
+            return `<svg viewBox="0 0 200 160" class="workout-fig" role="img" aria-label="תנוחת התרגיל">
+                <line x1="10" y1="${WORKOUT_FLOOR}" x2="190" y2="${WORKOUT_FLOOR}" class="floor"/>
+                <g class="figure">${parts.join('')}</g>
+            </svg>`;
+        }
+
         const WORKOUTS = [
-            ['רגליים', 'סקוואט', '15 חזרות', 'עומדים עם רגליים ברוחב הכתפיים. יורדים כאילו יושבים על כיסא, שומרים על הגב ישר, וחוזרים לעמידה.'],
-            ['רגליים', 'לאנג׳ אחורי', '10 לכל רגל', 'צעד אחורה עם רגל אחת, יורדים עד שהברך האחורית כמעט נוגעת ברצפה, וחוזרים.'],
-            ['רגליים', 'כיסא קיר', '30 שניות', 'נשענים על הקיר עם ברכיים בזווית של 90 מעלות, ונשארים במקום.'],
-            ['רגליים', 'הרמות עקבים', '20 חזרות', 'עומדים על קצות האצבעות ומרימים את העקבים, ואז יורדים לאט.'],
-            ['חזה וידיים', 'שכיבות שמיכה', '10 חזרות', 'אפשר על הברכיים אם קשה. יורדים עד שהחזה קרוב לרצפה ודוחפים חזרה.'],
-            ['חזה וידיים', 'דחיפה מהקיר', '15 חזרות', 'עומדים מול קיר, ידיים על הקיר בגובה הכתפיים, מתקרבים ודוחפים חזרה.'],
-            ['בטן וליבה', 'פלאנק', '30 שניות', 'תמיכה על האמות ובהונות, גוף ישר מהראש עד העקבים, והבטן מכווצת.'],
-            ['בטן וליבה', 'גשר ישבנים', '15 חזרות', 'שוכבים על הגב עם ברכיים כפופות, דוחפים את האגן למעלה ומחזיקים שנייה.'],
-            ['בטן וליבה', 'ציפור-כלב', '10 לכל צד', 'על הידיים והברכיים, מרימים יד ורגל נגדית ומחזיקים שנייה, ומחליפים.'],
-            ['גב ויציבה', 'סופרמן', '12 חזרות', 'שוכבים על הבטן, מרימים ידיים ורגליים מהרצפה ומחזיקים שנייה.'],
-            ['גב ויציבה', 'משיכת שכמות', '15 חזרות', 'מחזיקים מגבת בשתי ידיים, מושכים את השכמות זו לזו, וחוזרים.'],
-            ['כללי', 'הליכה במקום', '3 דקות', 'הליכה קלה במקום להתחמם לפני התרגילים ולאחריהם.']
+            { area: 'רגליים', name: 'סקוואט', reps: '15 חזרות', pose: 'squat', steps: ['עומדים עם רגליים ברוחב הכתפיים, הידיים קדימה.', 'יורדים כאילו מתיישבים על כיסא, הגב ישר.', 'דוחפים מהעקבים וחוזרים לעמידה.'], tip: 'הברכיים הולכות באותו כיוון של האצבעות.' },
+            { area: 'רגליים', name: 'לאנג׳ אחורי', reps: '10 לכל רגל', pose: 'lunge', steps: ['עומדים זקופים, צועדים צעד אחורה עם רגל אחת.', 'יורדים עד שהברך האחורית כמעט נוגעת ברצפה.', 'דוחפים חזרה לעמידה ומחליפים רגל.'], tip: 'הברך הקדמית נשארת מעל הקרסול.' },
+            { area: 'רגליים', name: 'כיסא קיר', reps: '30 שניות', pose: 'wallSit', steps: ['נשענים עם הגב על קיר.', 'מחליקים למטה עד שהברכיים בזווית של 90 מעלות.', 'נשארים במקום ונושמים.'], tip: 'מתחילים עם 15 שניות ומעלים בהדרגה.' },
+            { area: 'רגליים', name: 'הרמות עקבים', reps: '20 חזרות', pose: 'heelRaise', steps: ['עומדים עם כפות הרגליים צמודות לקיר או לשולחן לאיזון.', 'מרימים את העקבים ועומדים על קצות האצבעות.', 'יורדים לאט לעמידה רגילה.'], tip: 'אפשר לעשות על מדרגה כדי להעמיק את התנועה.' },
+            { area: 'חזה וידיים', name: 'שכיבות שמיכה בקיר', reps: '15 חזרות', pose: 'wallPushUp', steps: ['עומדים מול קיר, ידיים על הקיר בגובה הכתפיים.', 'מתקרבים לקיר עם הגוף ישר, והמרפקים מתכופפים.', 'דוחפים חזרה למצב ההתחלה.'], tip: 'זה התרגיל הקל ביותר לחזה. ככל שהרגליים רחוקות יותר מהקיר, התרגיל קשה יותר.' },
+            { area: 'חזה וידיים', name: 'שכיבות שמיכה', reps: '10 חזרות', pose: 'pushUp', steps: ['מתמקמים על הידיים והבהונות, הגוף ישר מהראש עד העקבים.', 'מכופפים את המרפקים ויורדים עד שהחזה קרוב לרצפה.', 'דוחפים חזרה למצב ההתחלה.'], tip: 'אם קשה, אפשר לעשות על הברכיים, בלי לשנות את הגב.' },
+            { area: 'בטן וליבה', name: 'פלאנק', reps: '30 שניות', pose: 'plank', steps: ['מתמקמים על האמות והבהונות.', 'הגוף ישר כמו קרש, והבטן מכווצת.', 'נושמים רגיל ומחזיקים.'], tip: 'אם הגב נופל, מקצרים את הזמן ומחזיקים שוב.' },
+            { area: 'בטן וליבה', name: 'גשר ישבנים', reps: '15 חזרות', pose: 'bridge', steps: ['שוכבים על הגב, ברכיים כפופות, כפות הרגליים על הרצפה.', 'דוחפים את האגן למעלה עד שהגוף נראה כמו קו ישר מהברכיים לכתפיים.', 'מחזיקים שנייה ויורדים לאט.'], tip: 'מכווצים את הישבן למעלה, ולא את הגב התחתון.' },
+            { area: 'בטן וליבה', name: 'כפיפות בטן', reps: '12 חזרות', pose: 'crunch', steps: ['שוכבים על הגב, ברכיים כפופות, ידיים לצד הראש.', 'מרימים את הכתפיים מהרצפה בעזרת הבטן.', 'יורדים לאט בלי למשוך את הצוואר.'], tip: 'העיניים מביטות כלפי התקרה.' },
+            { area: 'בטן וליבה', name: 'ציפור-כלב', reps: '10 לכל צד', pose: 'birdDog', steps: ['על הידיים והברכיים, הגב ישר.', 'מרימים יד אחת והרגל הנגדית, ישר לאורך הגוף.', 'מחזיקים שנייה, מחליפים צד.'], tip: 'מסתכלים על הרצפה כדי לשמור על צוואר ישר.' },
+            { area: 'גב ויציבה', name: 'סופרמן', reps: '12 חזרות', pose: 'superman', steps: ['שוכבים על הבטן, ידיים מושטות קדימה.', 'מרימים ידיים ורגליים מהרצפה בו-זמנית.', 'מחזיקים שנייה ויורדים.'], tip: 'מרימים באיטיות, בלי לזרוק את הראש אחורה.' },
+            { area: 'כללי', name: 'הליכה במקום', reps: '3 דקות', pose: 'march', steps: ['עומדים ומרימים ברכיים לסירוגין.', 'מניעים את הידיים בקצב ההליכה.', 'ממשיכים בקצב קל.'], tip: 'מתאים להתחממות לפני התרגילים ולסיום.' }
         ];
 
         function renderWorkouts() {
-            const areas = [...new Set(WORKOUTS.map(w => w[0]))];
+            const areas = [...new Set(WORKOUTS.map(w => w.area))];
             document.getElementById('workoutsList').innerHTML = areas.map(area => `
                 <div class="group-title">${area}</div>
-                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w[0] === area).map(w => `
-                    <div class="home-row">
-                        <div class="row-main"><span>${w[1]}</span><small>${w[2]} · ${w[3]}</small></div>
-                        <button class="chip" style="width: auto; flex-shrink: 0;" onclick="addWorkoutToday(${w.i})">＋ להיום</button>
-                    </div>
+                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w.area === area).map(w => `
+                    <details class="workout-card">
+                        <summary>
+                            <span>${w.name}</span>
+                            <small>${w.reps}</small>
+                        </summary>
+                        ${workoutFigure(w.pose)}
+                        <ol>${w.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+                        <p class="workout-tip">💡 ${w.tip}</p>
+                        <button class="chip" onclick="addWorkoutToday(${w.i})">＋ להוסיף להיום</button>
+                    </details>
                 `).join('')}
             `).join('');
         }
-
         renderWorkouts();
 
         function addWorkoutToday(index) {
-            const [, name, reps] = WORKOUTS[index];
-            createTask(`אימון: ${name} (${reps})`, isoDay(new Date()), 'both');
+            const w = WORKOUTS[index];
+            createTask(`אימון: ${w.name} (${w.reps})`, isoDay(new Date()), 'both');
         }
 
         function exportBackup() {
