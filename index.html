@@ -378,6 +378,7 @@
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .muted { color: #8a90a2; }
+        .workout-nudge { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #fff8ec; color: #b45309; font-size: 14px; }
         .activity-person { background: white; border: 1px solid #e7e9f2; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
         .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
         .workout-who { color: #667eea; font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
@@ -1731,7 +1732,9 @@
                 const done = cloud.workoutLogs.filter(l => l.doneOn === todayIso && personName(l.userId) === name).map(l => l.exercise);
                 return done.length ? `<div><b>${name}:</b> ${done.join(', ')}</div>` : `<div><b>${name}:</b> <span class="muted">עוד לא סומן</span></div>`;
             }).join('');
-            document.getElementById('homeWorkouts').innerHTML = todayWorkouts;
+            const anyToday = cloud.workoutLogs.some(l => l.doneOn === todayIso);
+            const nudge = anyToday ? '' : `<div class="workout-nudge">עוד לא נרשמה פעילות היום. <button class="home-link" onclick="showSection('workouts', 'more')">לרישום ←</button></div>`;
+            document.getElementById('homeWorkouts').innerHTML = todayWorkouts + nudge;
 
             const glasses = data.water[today] || 0;
             document.getElementById('homeWaterTxt').textContent = `${glasses} מתוך ${WATER_GOAL} כוסות`;
