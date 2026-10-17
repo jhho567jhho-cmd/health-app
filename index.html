@@ -378,6 +378,7 @@
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .muted { color: #8a90a2; }
+        .subgroup-title { font-weight: 700; color: #6b7080; margin: 14px 0 2px; }
         .back-badge { font-style: normal; font-size: 12px; background: #e6f7ef; color: #2e9e6a; padding: 2px 8px; border-radius: 10px; margin-inline-start: 6px; }
         .workout-caution { background: #fff3f3; color: #b42318; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin: 8px 0; }
         .workout-nudge { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #fff8ec; color: #b45309; font-size: 14px; }
@@ -1045,6 +1046,8 @@
             { area: 'עם בקבוק מים (1.5 ליטר)', name: 'דדליפט רומני', caution: 'עם דיסק, התכופפות קדימה תחת עומס מכבידה. עשה בלי עומס, והגב ישר לגמרי.', yt: 'water bottle romanian deadlift form', reps: '12 חזרות', pair: ['bottleHingeStart', 'bottleHingeDown', 'עומדים', 'מתכופפים מהמותן'], steps: ['עומדים עם הבקבוק מול הירכיים, ברכיים מעט כפופות.', 'מזיזים את האגן אחורה והגב נשאר ישר, עד שמרגישים מתיחה בצד האחורי של הירך.', 'דוחפים את האגן קדימה וחוזרים לעמידה.'], tip: 'זו תנועה מהירכיים, לא מהגב התחתון.' }
         ];
 
+        const isBackSection = w => w.back || w.name === 'משיכה לגב' || w.name === 'דדליפט רומני';
+
         function renderWorkouts() {
             const dateInput = document.getElementById('workoutDate');
             if (!dateInput.value) dateInput.value = isoDay(new Date());
@@ -1053,15 +1056,11 @@
             renderSportSummary();
             const openNames = new Set([...document.querySelectorAll('.workout-card[open]')].map(d => d.dataset.name));
             const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
-            const areas = [...new Set(WORKOUTS.map(w => w.area))];
-            document.getElementById('workoutsList').innerHTML = areas.map(area => `
-                <div class="group-title">${area}</div>
-                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w.area === area).map(w => {
-                    const doneBy = cloud.workoutLogs.filter(l => l.exercise === w.name && l.doneOn === day).map(l => l.userId);
-                    const mine = doneBy.includes(userId);
-                    const who = doneBy.length ? '✓ עשו ביום הזה: ' + doneBy.map(personName).join(', ') : 'עוד לא סומן ביום הזה';
-                    return `
-                    <details class="workout-card" data-name="${w.name}" ${openNames.has(w.name) ? 'open' : ''}>
+            const card = w => {
+                const doneBy = cloud.workoutLogs.filter(l => l.exercise === w.name && l.doneOn === day).map(l => l.userId);
+                const mine = doneBy.includes(userId);
+                const who = doneBy.length ? '✓ עשו ביום הזה: ' + doneBy.map(personName).join(', ') : 'עוד לא סומן ביום הזה';
+                return `<details class="workout-card" data-name="${w.name}" ${openNames.has(w.name) ? 'open' : ''}>
                         <summary>
                             <span>${w.name}${w.back ? ' <i class="back-badge">לגב</i>' : ''}</span>
                             <small>${w.reps}</small>
@@ -1076,9 +1075,19 @@
                         <button class="chip" onclick="toggleWorkoutLog(${w.i})">${mine ? '✓ עשיתי ביום הזה (לביטול, לחץ)' : 'סמן שעשיתי ביום הזה'}</button>
                         <button class="chip" onclick="addWorkoutToday(${w.i})">＋ להוסיף להיום</button>
                     </details>`;
-                }).join('')}
-            `).join('');
+            };
+            const backItems = WORKOUTS.map((w, i) => ({ ...w, i })).filter(isBackSection);
+            const restItems = WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => !isBackSection(w));
+            const areas = [...new Set(restItems.map(w => w.area))];
+            document.getElementById('workoutsList').innerHTML =
+                `<div class="group-title">🔙 תרגילים לגב (לדיסק)</div>` + backItems.map(card).join('') +
+                `<div class="group-title">🏋️ שאר הגוף</div>` + areas.map(area => `
+                    <div class="subgroup-title">${area}</div>
+                    ${restItems.filter(w => w.area === area).map(card).join('')}
+                `).join('');
         }
+
+        renderWorkouts();
 
         function addActivity() {
             const input = document.getElementById('activityName');
@@ -1143,7 +1152,6 @@
                 cloudWrite(sb.from('workout_logs').insert({ couple_id: coupleId, user_id: userId, exercise: name, done_on: day }), 'workout_logs');
             }
         }
-        renderWorkouts();
 
         function addWorkoutToday(index) {
             const w = WORKOUTS[index];
