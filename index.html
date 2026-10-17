@@ -1025,12 +1025,17 @@
         function exportBackup() {
             const data = getData();
             const backup = { exportedAt: new Date().toISOString(), tasks: data.tasks, shopping: data.shopping, weights: data.weights, menu: data.menu, water: data.water };
-            const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+            const fileName = `health-backup-${isoDay(new Date())}.json`;
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `health-backup-${isoDay(new Date())}.json`;
+            a.download = fileName;
+            document.body.appendChild(a);
             a.click();
-            URL.revokeObjectURL(url);
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showSuccess('✅ הגיבוי נשמר בהורדות');
         }
 
         // Supabase recommends not awaiting its own calls inside this callback.
