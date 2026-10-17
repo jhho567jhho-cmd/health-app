@@ -377,6 +377,7 @@
         .workout-fig .bottle { fill: #9ad0ff; stroke: #2b7bd6; stroke-width: 2; }
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
+        .workout-who { color: #667eea; font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
         .workout-link { display: inline-block; color: #667eea; font-weight: 700; margin: 4px 0 8px; }
         .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
         .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -567,6 +568,10 @@
             <div id="workouts" class="tab-content">
                 <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💪 תרגילי חיזוק לגוף</h2>
+                <div class="input-group">
+                    <label>תאריך האימון:</label>
+                    <input type="date" id="workoutDate" onchange="renderWorkouts()">
+                </div>
                 <div id="workoutsList"></div>
             </div>
 
@@ -763,7 +768,7 @@
         let realtime = null;
 
         // Shared data, loaded from Supabase. Photos and tips stay on this device.
-        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], weights: [], menu: [], water: {} };
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], weights: [], menu: [], water: {} };
 
         const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
 
@@ -789,6 +794,7 @@
             shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done, category: r.category || '' })],
             shopping_catalog: ['catalog', 'created_at', r => ({ id: r.id, name: r.name, category: r.category })],
             user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
+            workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
             weight_entries: ['weights', 'measured_at', r => ({
                 id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
             })],
@@ -819,6 +825,7 @@
 
         function refreshViews() {
             document.getElementById('eyeBtn').textContent = hidePrivate() ? '🙈' : '👁️';
+            renderWorkouts();
             displayTasks();
             displayShopping();
             displayWeight();
@@ -1016,11 +1023,20 @@
         ];
 
         function renderWorkouts() {
+            const dateInput = document.getElementById('workoutDate');
+            if (!dateInput.value) dateInput.value = isoDay(new Date());
+            const day = dateInput.value;
+            const openNames = new Set([...document.querySelectorAll('.workout-card[open]')].map(d => d.dataset.name));
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
             const areas = [...new Set(WORKOUTS.map(w => w.area))];
             document.getElementById('workoutsList').innerHTML = areas.map(area => `
                 <div class="group-title">${area}</div>
-                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w.area === area).map(w => `
-                    <details class="workout-card">
+                ${WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => w.area === area).map(w => {
+                    const doneBy = cloud.workoutLogs.filter(l => l.exercise === w.name && l.doneOn === day).map(l => l.userId);
+                    const mine = doneBy.includes(userId);
+                    const who = doneBy.length ? '✓ עשו ביום הזה: ' + doneBy.map(personName).join(', ') : 'עוד לא סומן ביום הזה';
+                    return `
+                    <details class="workout-card" data-name="${w.name}" ${openNames.has(w.name) ? 'open' : ''}>
                         <summary>
                             <span>${w.name}</span>
                             <small>${w.reps}</small>
@@ -1030,10 +1046,23 @@
                         <a class="workout-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(w.yt)}" target="_blank" rel="noopener">▶️ צפייה ביוטיוב</a>
                         <ol>${w.steps.map(s => `<li>${s}</li>`).join('')}</ol>
                         <p class="workout-tip">💡 ${w.tip}</p>
+                        <p class="workout-who">${who}</p>
+                        <button class="chip" onclick="toggleWorkoutLog(${w.i})">${mine ? '✓ עשיתי ביום הזה (לביטול, לחץ)' : 'סמן שעשיתי ביום הזה'}</button>
                         <button class="chip" onclick="addWorkoutToday(${w.i})">＋ להוסיף להיום</button>
-                    </details>
-                `).join('')}
+                    </details>`;
+                }).join('')}
             `).join('');
+        }
+
+        function toggleWorkoutLog(index) {
+            const name = WORKOUTS[index].name;
+            const day = document.getElementById('workoutDate').value || isoDay(new Date());
+            const mine = cloud.workoutLogs.find(l => l.exercise === name && l.doneOn === day && l.userId === userId);
+            if (mine) {
+                cloudWrite(sb.from('workout_logs').delete().eq('id', mine.id), 'workout_logs');
+            } else {
+                cloudWrite(sb.from('workout_logs').insert({ couple_id: coupleId, user_id: userId, exercise: name, done_on: day }), 'workout_logs');
+            }
         }
         renderWorkouts();
 
