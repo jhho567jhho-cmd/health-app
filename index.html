@@ -378,6 +378,13 @@
         .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
         .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
         .muted { color: #8a90a2; }
+        .plan-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; color: #6b7080; }
+        .plan-nav button { width: auto; font-size: 13px; padding: 8px 10px; }
+        .plan-day { background: white; border: 1px solid #e7e9f2; border-radius: 14px; padding: 10px 12px; margin: 8px 0; }
+        .plan-day.today { border-color: #667eea; }
+        .plan-day-title { font-weight: 700; margin-bottom: 6px; }
+        .plan-slot { display: block; font-size: 13px; color: #6b7080; margin: 6px 0; }
+        .plan-slot input { display: block; width: 100%; margin-top: 4px; padding: 10px; border: 1px solid #e3e6ef; border-radius: 10px; font-size: 16px; font-family: inherit; }
         .quick-mark { width: auto; padding: 4px 10px; margin-inline-start: 8px; border-radius: 12px; background: #f0f2fb; color: #667eea; font-size: 16px; box-shadow: none !important; transform: none !important; }
         .quick-mark.on { background: #2e9e6a; color: white; }
         .muscle-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
@@ -515,6 +522,7 @@
                     <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
                     <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
                     <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
+                    <button onclick="showSection('plan', 'more')">🗓️ תפריט שבועי</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -619,6 +627,18 @@
                 <button onclick="addFuel()">⛽ רשום תדלוק</button>
                 <div id="fuelSummary"></div>
                 <div id="fuelList"></div>
+            </div>
+
+            <!-- Weekly Plan Tab -->
+            <div id="plan" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🗓️ תפריט שבועי</h2>
+                <div class="plan-nav">
+                    <button onclick="shiftPlanWeek(-1)">→ שבוע קודם</button>
+                    <span id="planWeekTitle"></span>
+                    <button onclick="shiftPlanWeek(1)">שבוע הבא ←</button>
+                </div>
+                <div id="planGrid"></div>
             </div>
 
             <!-- Tips Tab -->
@@ -814,7 +834,7 @@
         let realtime = null;
 
         // Shared data, loaded from Supabase. Photos and tips stay on this device.
-        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], weights: [], menu: [], water: {} };
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], mealPlan: [], weights: [], menu: [], water: {} };
 
         const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
 
@@ -842,6 +862,7 @@
             user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
             workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
             fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: Number(r.amount), filledOn: r.filled_on, userId: r.user_id })],
+            meal_plan: ['mealPlan', 'plan_date', r => ({ date: r.plan_date, slot: r.slot, meal: r.meal })],
             weight_entries: ['weights', 'measured_at', r => ({
                 id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
             })],
@@ -874,6 +895,7 @@
             document.getElementById('eyeBtn').textContent = hidePrivate() ? '🙈' : '👁️';
             renderWorkouts();
             renderFuel();
+            renderPlan();
             displayTasks();
             displayShopping();
             displayWeight();
@@ -1219,6 +1241,48 @@
                     ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}')">✕</button>` : ''}
                   </div>`).join('')
                 : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
+        }
+
+        let planWeekStart = null;
+        const PLAN_SLOTS = [['breakfast', '🌅 בוקר'], ['lunch', '☀️ צהריים'], ['dinner', '🌙 ערב']];
+        const PLAN_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+        function planStartOfWeek() {
+            if (!planWeekStart) {
+                const now = new Date();
+                planWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            }
+            return planWeekStart;
+        }
+
+        function shiftPlanWeek(delta) {
+            const s = planStartOfWeek();
+            planWeekStart = new Date(s.getFullYear(), s.getMonth(), s.getDate() + delta * 7);
+            renderPlan();
+        }
+
+        function renderPlan() {
+            const start = planStartOfWeek();
+            const endDay = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+            document.getElementById('planWeekTitle').textContent = `${formatDay(isoDay(start))} – ${formatDay(isoDay(endDay))}`;
+            const days = [...Array(7).keys()].map(i => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+            document.getElementById('planGrid').innerHTML = days.map((d, i) => {
+                const key = isoDay(d);
+                const slots = PLAN_SLOTS.map(([slot, label]) => {
+                    const entry = cloud.mealPlan.find(m => m.date === key && m.slot === slot);
+                    return `<label class="plan-slot">${label}<input type="text" value="${entry ? entry.meal.replace(/"/g, '&quot;') : ''}" placeholder="מה אוכלים?" onchange="savePlanSlot('${key}', '${slot}', this.value)"></label>`;
+                }).join('');
+                return `<div class="plan-day ${key === isoDay(new Date()) ? 'today' : ''}"><div class="plan-day-title">${PLAN_DAYS[i]} · ${d.getDate()}/${d.getMonth() + 1}</div>${slots}</div>`;
+            }).join('');
+        }
+
+        function savePlanSlot(date, slot, value) {
+            const meal = value.trim();
+            if (!meal) {
+                cloudWrite(sb.from('meal_plan').delete().eq('couple_id', coupleId).eq('plan_date', date).eq('slot', slot), 'meal_plan');
+                return;
+            }
+            cloudWrite(sb.from('meal_plan').upsert({ couple_id: coupleId, plan_date: date, slot: slot, meal: meal, updated_by: userId }), 'meal_plan');
         }
 
         function exportBackup() {
