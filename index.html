@@ -467,12 +467,14 @@
                     <h3>🔔 תזכורת <small id="homeTomorrowDate"></small></h3>
                     <div id="homeTomorrow"></div>
                     <button class="home-link" id="tomorrowShare" onclick="shareTomorrow()" style="display: none;">📲 שלח בוואטסאפ</button>
+                    <button class="home-link" id="tomorrowMail" onclick="mailTomorrow()" style="display: none;">📧 שלח במייל</button>
                 </div>
 
                 <div class="home-card">
                     <h3>✅ להיום <button class="home-link" onclick="showSection('tasks', 'tasks')">כל המשימות ←</button></h3>
                     <div id="homeTasks"></div>
                     <button class="home-link" id="todayShare" onclick="shareToday()" style="display: none;">📲 שלח להיום בוואטסאפ</button>
+                    <button class="home-link" id="todayMail" onclick="mailToday()" style="display: none;">📧 שלח להיום במייל</button>
                     <div class="home-add">
                         <input type="text" id="homeTask" placeholder="הוסף משימה להיום..." onkeydown="if (event.key === 'Enter') addHomeTask()">
                         <button onclick="addHomeTask()">+ הוסף</button>
@@ -1228,6 +1230,18 @@
             }
         }
 
+        function mailText(subject, body) {
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        function mailToday() {
+            if (window.todayText) mailText('להיום', window.todayText);
+        }
+
+        function mailTomorrow() {
+            if (window.tomorrowText) mailText('תזכורת למחר', window.tomorrowText);
+        }
+
         function shareToday() {
             if (!window.todayText) return;
             window.open('https://wa.me/?text=' + encodeURIComponent(window.todayText), '_blank', 'noopener');
@@ -1960,6 +1974,7 @@
             document.getElementById('homeRing').style.setProperty('--p', (pct * 3.6) + 'deg');
             const openToday = todays.filter(t => !t.completed);
             document.getElementById('todayShare').style.display = openToday.length ? 'inline-block' : 'none';
+            document.getElementById('todayMail').style.display = openToday.length ? 'inline-block' : 'none';
             window.todayText = openToday.length
                 ? `📋 להיום (${formatDay(isoToday, true)}):\n` + openToday.map(t => `• ${t.name}${t.start ? ' ב-' + t.start : ''}`).join('\n')
                 : '';
@@ -1973,6 +1988,7 @@
             document.getElementById('homeTomorrowDate').textContent = formatDay(tomorrow, true);
             document.getElementById('homeTomorrow').innerHTML = tomorrowTasks.map(t => taskRow(t, false)).join('');
             document.getElementById('tomorrowShare').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
+            document.getElementById('tomorrowMail').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
             window.tomorrowText = tomorrowTasks.length
                 ? `🔔 ${formatDay(tomorrow, true)}:\n` + tomorrowTasks.map(t => `• ${t.name}${t.start ? ' ב-' + t.start : ''}`).join('\n')
                 : '';
