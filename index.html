@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>אפליקציית בריאות וכושר משותפת</title>
+    <title>הבית שלנו</title>
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="בריאות">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
     <style>
         * {
             margin: 0;
@@ -150,27 +157,6 @@
             overflow-x: auto;
         }
 
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.3s;
-            color: #333;
-            min-width: 50px;
-            white-space: nowrap;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
         .content {
             flex: 1;
             overflow-y: auto;
@@ -200,6 +186,7 @@
         input[type="text"],
         input[type="number"],
         input[type="datetime-local"],
+        input[type="date"],
         textarea,
         select {
             width: 100%;
@@ -237,25 +224,6 @@
             border-radius: 5px;
             margin-bottom: 10px;
             border-right: 3px solid #667eea;
-        }
-
-        .note-author {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .note-content {
-            color: #333;
-            margin-bottom: 5px;
-            word-break: break-word;
-            line-height: 1.5;
-        }
-
-        .note-date {
-            font-size: 12px;
-            color: #999;
         }
 
         .delete-btn {
@@ -303,17 +271,160 @@
             color: #999;
             padding: 30px 20px;
         }
+        .content { padding-bottom: 90px; }
+
+        .back-btn { width: auto; background: none; color: #667eea; padding: 6px 0; margin-bottom: 10px; font-size: 14px; box-shadow: none !important; transform: none !important; }
+
+        .more-list { display: grid; gap: 10px; }
+
+        .home-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .hero-greet { font-size: 20px; font-weight: 700; }
+        .hero-date { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+        .hero-tasks { font-size: 13px; margin-top: 8px; }
+        .ring { width: 74px; height: 74px; border-radius: 50%; background: conic-gradient(#fff var(--p, 0deg), rgba(255, 255, 255, 0.25) 0); display: grid; place-items: center; flex-shrink: 0; }
+        .ring span { width: 58px; height: 58px; border-radius: 50%; background: #667eea; display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+
+        .home-card { background: white; border: 1px solid #e7e9f2; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+        .home-card h3 { font-size: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .home-card h3 small { color: #8a90a2; font-weight: 400; font-size: 12px; }
+
+        .glasses { display: flex; gap: 6px; flex-wrap: wrap; }
+        .glass { width: 34px; height: 40px; padding: 0; border: 2px solid #3aa0e8; border-radius: 4px 4px 10px 10px; background: white; box-shadow: none !important; transform: none !important; }
+        .glass.on { background: linear-gradient(to top, #3aa0e8 80%, white 80%); }
+
+        .home-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f0f1f6; font-size: 14px; }
+        .home-row:first-child { border-top: 0; }
+        .home-row.done span { text-decoration: line-through; color: #8a90a2; }
+        .check { width: 26px; height: 26px; min-width: 26px; padding: 0; border-radius: 8px; border: 2px solid #d5d9e6; background: white; color: white; font-size: 14px; box-shadow: none !important; transform: none !important; }
+        .check.on { background: #2e9e6a; border-color: #2e9e6a; }
+
+        .home-add { display: flex; gap: 8px; margin-top: 10px; }
+        .home-add input { flex: 1; }
+        .home-add button { width: auto; white-space: nowrap; }
+        .home-action { margin-top: 10px; background: #f0f2fb; color: #667eea; box-shadow: none !important; transform: none !important; }
+
+        .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-bottom: 4px; }
+        .stats3 div { background: #f5f6fb; border-radius: 12px; padding: 10px 4px; }
+        .stats3 b { display: block; font-size: 18px; }
+        .stats3 small { color: #8a90a2; font-size: 11px; }
+
+        .bar { height: 10px; background: #eceef6; border-radius: 6px; overflow: hidden; }
+        .bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.4s; }
+
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e7e9f2; justify-content: space-around; padding: 8px 0 12px; z-index: 10; }
+        .app-container.active + .bottom-nav { display: flex; }
+        .nav-btn { width: auto; background: none; color: #8a90a2; font-size: 12px; padding: 4px 6px; display: grid; justify-items: center; gap: 2px; box-shadow: none !important; transform: none !important; }
+        .nav-btn b { font-size: 20px; }
+        .nav-btn.active { color: #667eea; font-weight: 700; }
+        .group-title { font-size: 13px; color: #8a90a2; font-weight: 700; margin: 14px 0 4px; }
+        .row-main { flex: 1; display: grid; gap: 2px; }
+        .row-main small { color: #8a90a2; font-size: 12px; }
+        .home-row.overdue .row-main small { color: #d64545; }
+        .icon-btn { width: auto; background: none; padding: 4px; font-size: 16px; box-shadow: none !important; transform: none !important; }
+        .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .form-row > * { flex: 1; }
+        .home-link { width: auto; background: none; color: #667eea; padding: 0; font-size: 12px; font-weight: 600; box-shadow: none !important; transform: none !important; }
+
+        .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .cal-head h2 { font-size: 18px; color: #333; }
+        .cal-head button { width: 40px; padding: 8px 0; }
+        .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .cal-week { font-size: 12px; color: #8a90a2; margin-bottom: 4px; }
+        .cal-day { position: relative; aspect-ratio: 1; padding: 0; border-radius: 10px; background: #f5f6fb; color: #333; font-size: 14px; font-weight: 500; box-shadow: none !important; transform: none !important; }
+        .cal-day.today { border: 2px solid #667eea; }
+        .cal-day.selected { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .cal-day i { position: absolute; bottom: 3px; left: 50%; margin-left: -9px; min-width: 18px; font-style: normal; font-size: 10px; line-height: 14px; background: #ff6b9d; color: white; border-radius: 7px; }
+        .cal-day-title { font-size: 15px; font-weight: 700; margin: 16px 0 6px; }
+
+        .auth-input { padding: 14px; border: none; border-radius: 8px; font-size: 16px; width: 100%; text-align: left; }
+        .auth-msg { min-height: 20px; font-size: 14px; line-height: 1.5; }
+
+        .staple-group { background: white; border: 1px solid #e7e9f2; border-radius: 12px; margin-bottom: 8px; padding: 10px 12px; }
+        .staple-group summary { font-weight: 600; font-size: 14px; cursor: pointer; }
+        .staple-group summary b { background: #2e9e6a; color: white; border-radius: 10px; padding: 0 7px; font-size: 12px; margin-right: 6px; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .chip-pair { display: inline-flex; align-items: center; gap: 2px; }
+        .chip-del { width: auto; padding: 4px 8px; border-radius: 12px; background: none; color: #999; font-size: 13px; box-shadow: none !important; transform: none !important; }
+        .chip { width: auto; padding: 7px 12px; border-radius: 16px; background: #f0f2fb; color: #333; font-size: 13px; font-weight: 500; box-shadow: none !important; transform: none !important; }
+        .chip.on { background: #2e9e6a; color: white; }
+        .sheet .chip.on { background: #d97706; }
+
+        .shop-summary { font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
+        .shop-group-title { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #667eea; background: #f0f2fb; padding: 6px 10px; border-radius: 8px; margin: 12px 0 2px; }
+
+        .sheet { position: fixed; inset: 0; z-index: 50; background: #f5f6fb; overflow-y: auto; transform: translateY(100%); transition: transform 0.25s ease; }
+        .sheet.open { transform: none; }
+        .sheet-head { position: sticky; top: 0; z-index: 1; background: #f5f6fb; display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid #e7e9f2; }
+        .sheet-head h2 { font-size: 22px; }
+        .sheet-close { width: auto; background: none; color: #333; font-size: 24px; padding: 4px 8px; box-shadow: none !important; transform: none !important; }
+        .sheet-body { max-width: 520px; margin: 0 auto; padding: 16px 20px 40px; }
+        .sheet label { margin: 18px 0 8px; color: #6b7080; font-size: 14px; }
+        .sheet .field { width: 100%; padding: 14px 16px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; font-size: 16px; font-family: inherit; direction: rtl; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .eye-btn { width: auto; background: none; box-shadow: none !important; padding: 4px 8px; font-size: 18px; }
+        .workout-card { background: white; border: 1px solid #e7e9f2; border-radius: 14px; padding: 12px 14px; margin: 10px 0; }
+        .workout-card summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; list-style: none; }
+        .workout-card summary small { color: #8a90a2; font-weight: 400; }
+        .figure-pair { display: flex; gap: 8px; margin: 12px 0 6px; }
+        .figure-pair figure { flex: 1; margin: 0; text-align: center; background: #f7f8fc; border-radius: 12px; padding: 6px 4px; }
+        .figure-pair figcaption { font-size: 13px; font-weight: 700; color: #667eea; margin-top: 4px; }
+        .workout-fig { width: 100%; display: block; }
+        .workout-fig .head { fill: #fff; stroke: #667eea; stroke-width: 4; }
+        .workout-fig line { stroke: #667eea; stroke-width: 6; stroke-linecap: round; }
+        .workout-fig .joint { fill: #fff; stroke: #667eea; stroke-width: 3; }
+        .workout-fig .floor { stroke: #c9cde0; stroke-width: 3; }
+        .workout-fig .wall { stroke: #c9cde0; stroke-width: 3; }
+        .workout-fig .bottle { fill: #9ad0ff; stroke: #2b7bd6; stroke-width: 2; }
+        .workout-card ol { padding-right: 20px; color: #444; line-height: 1.7; }
+        .workout-tip { color: #6b7080; font-size: 14px; margin: 6px 0 10px; }
+        .muted { color: #8a90a2; }
+        .plan-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; color: #6b7080; }
+        .plan-nav button { width: auto; font-size: 13px; padding: 8px 10px; }
+        .plan-day { background: white; border: 1px solid #e7e9f2; border-radius: 14px; padding: 10px 12px; margin: 8px 0; }
+        .plan-day.today { border-color: #667eea; }
+        .plan-day-title { font-weight: 700; margin-bottom: 6px; }
+        .plan-slot { display: block; font-size: 13px; color: #6b7080; margin: 6px 0; }
+        .plan-slot input { display: block; width: 100%; margin-top: 4px; padding: 10px; border: 1px solid #e3e6ef; border-radius: 10px; font-size: 16px; font-family: inherit; }
+        .quick-mark { width: auto; padding: 4px 10px; margin-inline-start: 8px; border-radius: 12px; background: #f0f2fb; color: #667eea; font-size: 16px; box-shadow: none !important; transform: none !important; }
+        .quick-mark.on { background: #2e9e6a; color: white; }
+        .muscle-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .muscle-chip { background: #eef0ff; color: #4a53b8; border-radius: 12px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
+        .subgroup-title { font-weight: 700; color: #6b7080; margin: 14px 0 2px; }
+        .back-badge { font-style: normal; font-size: 12px; background: #e6f7ef; color: #2e9e6a; padding: 2px 8px; border-radius: 10px; margin-inline-start: 6px; }
+        .workout-caution { background: #fff3f3; color: #b42318; border-radius: 10px; padding: 8px 10px; font-size: 14px; margin: 8px 0; }
+        .workout-nudge { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #fff8ec; color: #b45309; font-size: 14px; }
+        .activity-person { background: white; border: 1px solid #e7e9f2; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+        .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+        .workout-who { color: #667eea; font-size: 14px; font-weight: 700; margin: 4px 0 6px; }
+        .workout-link { display: inline-block; color: #667eea; font-weight: 700; margin: 4px 0 8px; }
+        .forgot-link { color: white; text-align: center; font-size: 14px; text-decoration: underline; opacity: 0.9; margin-top: 4px; }
+        .type-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .type-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 8px; background: white; color: #555; border: 2px solid #e7e9f2; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: none !important; transform: none !important; }
+        .type-tile b { font-size: 40px; line-height: 1; }
+        .type-tile small { font-size: 12px; font-weight: 400; color: #8a90a2; }
+        .type-tile.active { border-color: #d97706; background: #fff8ec; color: #b45309; }
+        .type-tile:disabled { opacity: 0.4; }
+        .sheet-submit { margin-top: 26px; padding: 16px; font-size: 18px; border-radius: 16px; width: 100%; background: #d97706; box-shadow: none !important; }
+        .sheet-delete { margin-top: 10px; background: none; color: #d64545; box-shadow: none !important; transform: none !important; }
+        .new-task-btn { padding: 14px; font-size: 16px; border-radius: 14px; margin-bottom: 6px; width: 100%; background: #d97706; box-shadow: none !important; }
+        .row-main { cursor: pointer; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 8px; background: #fff1d6; color: #b26a00; }
+
     </style>
 </head>
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
         <div class="login-box">
-            <h1>💪 בריאות וכושר</h1>
+            <h1>🏠 הבית שלנו</h1>
             <p>אפליקציה משותפת עבור חיים ודבורה</p>
             <div class="login-buttons">
-                <button class="login-btn chaim" onclick="login('chaim')">👨 כניסה כחיים</button>
-                <button class="login-btn devorah" onclick="login('devorah')">👩 כניסה כדבורה</button>
+                <input class="auth-input" type="email" id="authEmail" placeholder="אימייל" autocomplete="email" dir="ltr">
+                <input class="auth-input" type="password" id="authPassword" placeholder="סיסמה (לפחות 6 תווים)" autocomplete="current-password" dir="ltr" onkeydown="if (event.key === 'Enter') signIn()">
+                <button class="login-btn chaim" onclick="signIn()">כניסה</button>
+                <button class="login-btn devorah" onclick="signUp()">הרשמה ראשונה</button>
+                <a href="#" class="forgot-link" onclick="sendPasswordReset(); return false;">שכחתי סיסמה</a>
+                <div class="auth-msg" id="authMsg"></div>
             </div>
         </div>
     </div>
@@ -321,26 +432,110 @@
     <!-- App -->
     <div id="appContainer" class="app-container">
         <div class="header">
-            <h1>💪 בריאות וכושר</h1>
+            <h1>🏠 הבית שלנו</h1>
             <div class="user-info">
                 <span id="currentUser"></span>
                 <span class="online-status"></span>
+                <button class="eye-btn" id="eyeBtn" onclick="togglePrivacy()" aria-label="הסתר פרטיים">👁️</button>
                 <button class="logout-btn" onclick="logout()">התנתק</button>
             </div>
         </div>
 
-        <div class="tabs" style="margin: 10px;">
-            <button class="tab-btn active" onclick="switchTab(event, 'ai')">🤖 עוזר</button>
-            <button class="tab-btn" onclick="switchTab(event, 'photos')">📸 תמונות</button>
-            <button class="tab-btn" onclick="switchTab(event, 'menu')">🍽️ תפריט</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
-            <button class="tab-btn" onclick="switchTab(event, 'weight')">⚖️ משקל</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tasks')">✅ משימות</button>
-        </div>
-
         <div class="content">
+            <!-- Home Tab -->
+            <div id="home" class="tab-content active">
+                <div class="home-hero">
+                    <div>
+                        <div class="hero-greet" id="homeGreet"></div>
+                        <div class="hero-date" id="homeDate"></div>
+                        <div class="hero-tasks"><span id="homeTasksDone">0</span> מתוך <span id="homeTasksTotal">0</span> משימות הושלמו</div>
+                    </div>
+                    <div class="ring" id="homeRing"><span id="homeRingPct">0%</span></div>
+                </div>
+
+                <div class="home-card">
+                    <h3>💧 מים <small id="homeWaterTxt"></small></h3>
+                    <div class="glasses" id="homeWater"></div>
+                </div>
+
+                <div class="home-card">
+                    <h3>💪 ספורט להיום <button class="home-link" onclick="showSection('workouts', 'more')">לספורט ←</button></h3>
+                    <div id="homeWorkouts"></div>
+                </div>
+
+                <div class="home-card" id="homeTomorrowCard" style="display: none;">
+                    <h3>🔔 תזכורת <small id="homeTomorrowDate"></small></h3>
+                    <div id="homeTomorrow"></div>
+                    <button class="home-link" id="tomorrowShare" onclick="shareTomorrow()" style="display: none;">📲 שלח בוואטסאפ</button>
+                    <button class="home-link" id="tomorrowMail" onclick="mailTomorrow()" style="display: none;">📧 שלח במייל</button>
+                </div>
+
+                <div class="home-card">
+                    <h3>✅ להיום <button class="home-link" onclick="showSection('tasks', 'tasks')">כל המשימות ←</button></h3>
+                    <div id="homeTasks"></div>
+                    <button class="home-link" id="todayShare" onclick="shareToday()" style="display: none;">📲 שלח להיום בוואטסאפ</button>
+                    <button class="home-link" id="todayMail" onclick="mailToday()" style="display: none;">📧 שלח להיום במייל</button>
+                    <div class="home-add">
+                        <input type="text" id="homeTask" placeholder="הוסף משימה להיום..." onkeydown="if (event.key === 'Enter') addHomeTask()">
+                        <button onclick="addHomeTask()">+ הוסף</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>🛒 קניות <button class="home-link" onclick="showSection('shopping', 'shopping')" id="homeShopTxt">לרשימה ←</button></h3>
+                    <div id="homeShop"></div>
+                    <div class="home-add">
+                        <input type="text" id="homeShopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('homeShopInput')">
+                        <button onclick="addShopping('homeShopInput')">+ הוסף</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>⚖️ משקל <small id="homeWeightTxt"></small></h3>
+                    <div class="stats3">
+                        <div><b id="homeWeightLast">—</b><small>אחרון</small></div>
+                        <div><b id="homeWeightAvg">—</b><small>ממוצע</small></div>
+                        <div><b id="homeWeightChange">—</b><small>שבוע</small></div>
+                    </div>
+                    <div class="home-add">
+                        <input type="number" id="homeWeight" step="0.1" min="0" placeholder='ק"ג'>
+                        <button onclick="addHomeWeight()">💾 שמור</button>
+                    </div>
+                </div>
+
+                <div class="home-card">
+                    <h3>🍽️ קלוריות היום <small id="homeCalTxt"></small></h3>
+                    <div class="bar"><span id="homeCalBar"></span></div>
+                    <button class="home-action" onclick="showSection('menu', 'home')">+ הוסף ארוחה</button>
+                </div>
+
+                <div class="home-card">
+                    <h3>📸 תמונות <small id="homePhotoTxt"></small></h3>
+                    <button class="home-action" onclick="showSection('photos', 'home')">📷 הוסף תמונה</button>
+                </div>
+            </div>
+
+            <!-- More Tab -->
+            <div id="more" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">☰ עוד</h2>
+                <div class="more-list">
+                    <button onclick="showSection('menu', 'more')">🍽️ תפריט וארוחות</button>
+                    <button onclick="showSection('photos', 'more')">📸 תמונות</button>
+                    <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
+                    <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
+                    <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
+                    <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
+                    <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
+                    <button onclick="showSection('plan', 'more')">🗓️ תפריט שבועי</button>
+                    <button onclick="showSection('receipts', 'more')">🧾 קבלות</button>
+                    <button onclick="exportBackup()">💾 גיבוי נתונים</button>
+                    <button onclick="logout()">🚪 התנתק</button>
+                </div>
+            </div>
+
             <!-- AI Assistant Tab -->
-            <div id="ai" class="tab-content active">
+            <div id="ai" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
                     <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
@@ -359,6 +554,7 @@
 
             <!-- Photos Tab -->
             <div id="photos" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <button onclick="triggerCameraInput()">📷 צלם תמונה</button>
                     <button onclick="triggerPhotoInput()">📁 בחר תמונה</button>
@@ -373,6 +569,7 @@
 
             <!-- Menu Tab -->
             <div id="menu" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div class="input-group">
                     <label>שם המנה:</label>
                     <input type="text" id="menuName" placeholder="לדוגמה: עוף צלוי">
@@ -397,14 +594,90 @@
                 <div id="menuList"></div>
             </div>
 
+            <!-- Workouts Tab -->
+            <div id="workouts" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💪 ספורט וחיזוק</h2>
+                <div class="input-group">
+                    <label>תאריך:</label>
+                    <input type="date" id="workoutDate" onchange="renderWorkouts()">
+                </div>
+                <div class="input-group">
+                    <label>רישום פעילות (הליכה, ריצה, אופניים, כל דבר):</label>
+                    <div class="home-add">
+                        <input type="text" id="activityName" placeholder="למשל: הליכה 30 דקות" onkeydown="if (event.key === 'Enter') addActivity()">
+                        <button onclick="addActivity()">+ רשום</button>
+                    </div>
+                </div>
+                <div class="group-title">סיכום</div>
+                <div id="sportSummary"></div>
+                <div class="group-title">מה נרשם ביום שנבחר</div>
+                <div id="dayActivities"></div>
+                <div class="group-title">תרגילי חיזוק לגוף</div>
+                <div id="workoutsList"></div>
+            </div>
+
+            <!-- Fuel Tab -->
+            <div id="fuel" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">⛽ דלק</h2>
+                <div class="input-group">
+                    <label>כמה שילמת (₪):</label>
+                    <input type="number" id="fuelAmount" placeholder="0" min="1" step="1" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <label>תאריך:</label>
+                    <input type="date" id="fuelDate">
+                </div>
+                <button onclick="addFuel()">⛽ רשום תדלוק</button>
+                <div id="fuelSummary"></div>
+                <div id="fuelList"></div>
+            </div>
+
+            <!-- Weekly Plan Tab -->
+            <div id="plan" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🗓️ תפריט שבועי</h2>
+                <div class="plan-nav">
+                    <button onclick="shiftPlanWeek(-1)">→ שבוע קודם</button>
+                    <span id="planWeekTitle"></span>
+                    <button onclick="shiftPlanWeek(1)">שבוע הבא ←</button>
+                </div>
+                <div id="planGrid"></div>
+            </div>
+
+            <!-- Receipts Tab -->
+            <div id="receipts" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🧾 קבלות</h2>
+                <div class="input-group">
+                    <label>סכום (₪, לא חובה):</label>
+                    <input type="number" id="receiptAmount" placeholder="0" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <label>תאריך:</label>
+                    <input type="date" id="receiptDate">
+                </div>
+                <div class="input-group">
+                    <label>מה זה (לא חובה):</label>
+                    <input type="text" id="receiptNote" placeholder="למשל: סופר, תיקון רכב">
+                </div>
+                <input type="file" id="receiptFile" accept="image/*" style="display: none" onchange="addReceipt(this)">
+                <button onclick="document.getElementById('receiptFile').click()">📷 צלם או בחר קבלה</button>
+                <div id="receiptsSummary"></div>
+                <div id="receiptsList"></div>
+            </div>
+
             <!-- Tips Tab -->
             <div id="tips" class="tab-content">
-                <button onclick="generateTip()" style="margin-bottom: 15px;">💡 קבל טיפ חדש</button>
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <button onclick="generateTip()" style="margin-bottom: 15px;">🏋️ קבל טיפ לספורט</button>
                 <div id="tipsList"></div>
             </div>
 
             <!-- Weight Tab -->
             <div id="weight" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <div class="input-group">
                     <label>משקל (ק"ג):</label>
                     <input type="number" id="weightValue" placeholder="0.0" step="0.1" min="0">
@@ -419,161 +692,1393 @@
 
             <!-- Tasks Tab -->
             <div id="tasks" class="tab-content">
-                <div class="input-group">
-                    <label>משימה חדשה:</label>
-                    <input type="text" id="taskName" placeholder="לדוגמה: הולכה 30 דקות">
-                </div>
-                <button onclick="addTask()" style="margin-bottom: 15px;">✅ הוסף משימה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">✅ משימות</h2>
+                <button class="new-task-btn" onclick="openTaskSheet(null)">+ אירוע חדש</button>
+                <div class="chips" id="taskFilters"></div>
+                <div class="chips" id="taskCategoryFilters"></div>
                 <div id="tasksList"></div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar" class="tab-content">
+                <div class="cal-head">
+                    <button onclick="moveMonth(-1)">→</button>
+                    <h2 id="calTitle"></h2>
+                    <button onclick="moveMonth(1)">←</button>
+                </div>
+                <div class="cal-week"><div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div></div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="cal-day-title" id="calDayTitle"></div>
+                <div id="calDayList"></div>
+                <div class="home-add">
+                    <input type="text" id="calTask" placeholder="הוסף משימה ליום הזה..." onkeydown="if (event.key === 'Enter') addCalendarTask()">
+                    <button onclick="addCalendarTask()">+ הוסף</button>
+                </div>
+                <button class="home-action" onclick="openTaskSheet(null, calSelected)">📝 משימה עם שעה ופרטים ליום הזה</button>
+                <h3 class="cal-upcoming-title">📅 כל המשימות הקרובות</h3>
+                <div id="calUpcoming"></div>
+            </div>
+
+            <!-- Shopping Tab -->
+            <div id="shopping" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🛒 רשימת קניות</h2>
+                <div class="home-add" style="margin-bottom: 10px; flex-wrap: wrap;">
+                    <input type="text" id="shopInput" placeholder="מה צריך לקנות?" onkeydown="if (event.key === 'Enter') addShopping('shopInput')">
+                    <button onclick="addShopping('shopInput')">+ הוסף</button>
+                    <select id="shopCat" style="flex-basis: 100%;"></select>
+                </div>
+                <div id="shoppingList"></div>
+                <div class="group-title">📋 מוצרי יסוד: לחיצה מוסיפה לרשימה, לחיצה נוספת מורידה</div>
+                <div id="staples"></div>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-nav="home" onclick="showSection('home', 'home')"><b>🏠</b>בית</button>
+        <button class="nav-btn" data-nav="tasks" onclick="showSection('tasks', 'tasks')"><b>✅</b>משימות</button>
+        <button class="nav-btn" data-nav="calendar" onclick="showSection('calendar', 'calendar')"><b>📅</b>לוח שנה</button>
+        <button class="nav-btn" data-nav="shopping" onclick="showSection('shopping', 'shopping')"><b>🛒</b>קניות</button>
+        <button class="nav-btn" data-nav="more" onclick="showSection('more', 'more')"><b>☰</b>עוד</button>
+    </nav>
 
+    <!-- New / edit task -->
+    <div id="taskSheet" class="sheet">
+        <div class="sheet-head">
+            <h2 id="tsHeading">משימה חדשה</h2>
+            <button class="sheet-close" onclick="closeTaskSheet()">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="type-tiles">
+                <button class="type-tile" id="tsShared" onclick="setTaskVisibility('shared')"><b>👫</b>משותפת<small>שנינו רואים</small></button>
+                <button class="type-tile" id="tsPrivate" onclick="setTaskVisibility('private')"><b>🔒</b>פרטית<small>רק אני רואה</small></button>
+            </div>
+
+            <label>מה צריך לעשות</label>
+            <input class="field" type="text" id="tsTitle" placeholder="שם המשימה">
+            <div class="chips" id="tsTitleChips"></div>
+
+            <label>סוג</label>
+            <div class="chips" id="tsCategoryChips"></div>
+
+            <label>תאריך</label>
+            <input class="field" type="date" id="tsDue">
+
+            <div class="field-row">
+                <div>
+                    <label>משעה</label>
+                    <input class="field" type="time" id="tsStart">
+                </div>
+                <div>
+                    <label>עד שעה</label>
+                    <input class="field" type="time" id="tsEnd">
+                </div>
+            </div>
+
+            <div id="tsWhoBlock">
+                <label>על מי</label>
+                <div class="chips" id="tsWhoChips"></div>
+            </div>
+
+            <label>מי ביקש</label>
+            <input class="field" type="text" id="tsRequestedBy" placeholder="שם">
+            <div class="chips" id="tsRequestedChips"></div>
+
+            <div class="field-row">
+                <div>
+                    <label>סטטוס</label>
+                    <select class="field" id="tsStatus">
+                        <option value="pending">⏳ ממתין</option>
+                        <option value="in_progress">🔄 בביצוע</option>
+                        <option value="done">✓ בוצע</option>
+                    </select>
+                </div>
+                <div>
+                    <label>מאושר ע"י</label>
+                    <input class="field" type="text" id="tsApprovedBy" placeholder="שם">
+                </div>
+            </div>
+
+            <label>הערות</label>
+            <textarea class="field" id="tsNotes" rows="3" placeholder="לא חובה"></textarea>
+
+            <button class="sheet-submit" id="tsSubmit" onclick="saveTaskSheet()">הוסף אירוע</button>
+            <button class="sheet-delete" id="tsDelete" onclick="deleteFromSheet()">🗑️ מחק משימה</button>
+        </div>
+    </div>
+
+    <script src="vendor/supabase.js"></script>
     <script>
-        // Firebase Configuration - Using Local Emulator
-        const firebaseConfig = {
-            projectId: "health-app-local",
-            databaseURL: "http://127.0.0.1:9000?ns=health-app-local"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Connect to Emulator
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            database.useEmulator('127.0.0.1', 9000);
-        }
-
         let currentUser = null;
         const DATA_KEY = 'health-app-data-v6';
         const TIPS = [
-            '🚶 הליכה 30 דקות ביום היא טובה כמו סופרגיבור!',
-            '💧 שתה 8 כוסות מים ביום להישאר מחוברת.',
-            '🥗 אכול יותר ירקות בכל ארוחה.',
-            '😴 שינה 7-8 שעות בלילה חיוני לבריאות.',
-            '🏃 אימון 30 דקות ביום משפר את הבריאות.',
-            '🧘 מדיטציה 10 דקות ביום מורידה את הלחץ.',
-            '🍎 תפוח ביום מעבר לרופא!',
-            '🙏 חיוך הוא התרופה הטובה ביותר.'
+            '💧 שתה מים לפני האימון, במהלכו ואחריו. גם ירידה קטנה בנוזלים פוגעת בביצועים.',
+            '🔥 התחמם 5 דקות לפני כל אימון (הליכה קלה, הנעת כתפיים וירכיים) כדי להקטין סיכון לפציעה.',
+            '🧘 סיים כל אימון במתיחות קלות של 5 דקות, והחזק כל מתיחה 20-30 שניות.',
+            '📈 העלה את הקושי בהדרגה: חזרה או שנייה יותר בשבוע, לא את שניהם באותו שבוע.',
+            '🎯 אימון קצר ועקבי עדיף על אימון ארוך פעם בשבוע. 3 פעמים בשבוע מספיקות להתחלה.',
+            '🛑 כאב חד או כאב בפרק הוא סימן להפסיק. שריר עייף זה בסדר, כאב חד לא.',
+            '🫁 נשוף בזמן המאמץ (ההרמה), ושאף בזמן הירידה. אל תעצור את הנשימה.',
+            '🧠 כאב שריר של יום-יומיים אחרי תרגיל חדש הוא תקין. מנוחה של יום-יומיים עוזרת להתאושש.',
+            '🥚 אחרי אימון, אכול ארוחה עם חלבון (ביצה, עוף, יוגורט, קוטג׳) כדי לתקן את השריר.',
+            '😴 שינה טובה היא חלק מהאימון. השריר מתחזק בזמן המנוחה, לא בזמן האימון.',
+            '🪑 ישיבה ארוכה מחלישה את הישבן והגב. קום ותזוז כל 30-45 דקות.',
+            '🦵 בסקוואט, שמור שהברכיים הולכות לכיוון האצבעות ולא פנימה.',
+            '🧱 בפלאנק, אם האגן יורד, סיים את הסט. עדיף 20 שניות נכונות מ-60 שגויות.',
+            '🔁 ירידה איטית (כ-3 שניות) מפעילה את השריר יותר, גם בלי משקל נוסף.',
+            '🗓️ קבע את האימון ביומן באותה שעה כל יום. הרגל מחזיק את העקביות יותר מכוח רצון.',
+            '🥤 בקבוק מים של 1.5 ליטר הוא משקל מצוין לתרגילים בבית. הרם לאט ושמור על הגב ישר.',
+            '🌞 הליכה של 20 דקות אחרי ארוחה עוזרת לעיכול ולרמת הסוכר בדם.',
+            '📏 כתוב את החזרות והזמנים כל שבוע. כשרואים התקדמות, קל יותר להמשיך.',
+            '🥬 ירקות וחלבון בכל ארוחה שומרים על אנרגיה לאימון.',
+            '⏱️ בין סטים, תן 2-3 דקות מנוחה כדי לשמור על כוח.',
+            '🍌 לפני אימון ארוך, אכול משהו קל (בננה, תמר) 30-60 דקות לפני.',
+            '🧴 מתיחה לפני השינה עוזרת לשחרר את הגב והכתפיים אחרי יום של ישיבה.',
+            '🎧 מוזיקה בקצב קבוע יכולה לעזור להמשיך עוד כמה חזרות.',
+            '👫 אימון עם בן הזוג מגביר את העקביות. תתאמנו ביחד.',
+            '🚶 אם אין זמן לאימון, עשר דקות הליכה, שלוש פעמים ביום, מספיקות לשמור על פעילות.',
+            '🦶 בסקוואט ולאנג׳, העקבים נשארים על הרצפה. אם הם מתרוממים, הטעינה על קצות האצבעות.',
+            '⚠️ אם יש כאב בברך, בגב או בכתף, התייעץ עם רופא לפני שמתחילים תרגילים חדשים.',
+            '🏆 עמוד בשבוע הראשון. אחרי 3 שבועות הגוף מתרגל, והתרגיל הופך לקל יותר.'
         ];
 
         const AI_RESPONSES = {
-            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ببטיות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
+            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ארוחות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
             'בריאות': '💪 תכנית בריאות\n\n1. פעילות: הליכה 30 דקות ביום\n2. תזונה: ירקות, פרות, חלבון\n3. שינה: 7-8 שעות בלילה\n4. מים: 8 כוסות ביום\n5. עקוב אחרי ההתקדמות!',
             'מתכונים': '🍽️ מתכונים בריאים\n\n• סלט ירקות עם לימון\n• עוף בתנור עם ירקות\n• דגים צלויים עם אורז חום\n• ביצים עם שום\n• חומוס עם סלט\n• סלט טונה\n\n💡 הכן ארוחות בראשון!',
             'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה'
         };
 
-        // Login
-        function login(user) {
-            currentUser = user;
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContainer').classList.add('active');
-            document.getElementById('currentUser').textContent = user === 'chaim' ? '👨 חיים' : '👩 דבורה';
-            loadSharedNotes();
-            displayPhotos();
-            displayMenu();
-            displayTips();
-            displayWeight();
-            displayTasks();
-            initWeightDate();
+        // Supabase. The anon key is public by design; Row Level Security limits each
+        // signed-in user to their own couple's rows.
+        const SUPABASE_URL = 'https://iewlhdcinmktrzepjstc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlld2xoZGNpbm1rdHJ6ZXBqc3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDk4MDQsImV4cCI6MjEwNTgyNTgwNH0.xpYdNmq-j7Qkj5IYWWu9sxIB-gI2r9n-SXZjGB-9vGI';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let userId = null;
+        let coupleId = null;
+        let members = [];
+        let realtime = null;
+
+        // Shared data, loaded from Supabase. Photos and tips stay on this device.
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], mealPlan: [], receipts: [], weights: [], menu: [], water: {} };
+
+        const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
+
+        function memberKey(uid) {
+            const m = members.find(x => x.user_id === uid);
+            return m ? (NAME_KEYS[m.display_name] || 'both') : 'both';
         }
 
-        function logout() {
+        function memberUserId(key) {
+            const m = members.find(x => NAME_KEYS[x.display_name] === key);
+            return m ? m.user_id : null;
+        }
+
+        // table -> [cache key, order column, row mapper]
+        const CLOUD_TABLES = {
+            task_items: ['tasks', 'created_at', r => ({
+                id: r.id, name: r.title, completed: r.done, due: r.due_date || '', who: memberKey(r.assigned_to),
+                doneDay: r.done_at ? isoDay(new Date(r.done_at)) : '', date: new Date(r.created_at).toLocaleString('he-IL'),
+                isPrivate: r.is_private, createdBy: r.created_by, status: r.status || (r.done ? 'done' : 'pending'),
+                start: (r.start_time || '').slice(0, 5), end: (r.end_time || '').slice(0, 5), notes: r.notes || '', category: r.category || '',
+                requestedBy: r.requested_by || '', approvedBy: r.approved_by || ''
+            })],
+            shopping_items: ['shopping', 'created_at', r => ({ id: r.id, name: r.name, done: r.done, category: r.category || '' })],
+            shopping_catalog: ['catalog', 'created_at', r => ({ id: r.id, name: r.name, category: r.category })],
+            user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
+            workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
+            fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: Number(r.amount), filledOn: r.filled_on, userId: r.user_id })],
+            meal_plan: ['mealPlan', 'plan_date', r => ({ date: r.plan_date, slot: r.slot, meal: r.meal })],
+            receipts: ['receipts', 'receipt_date', r => ({ id: r.id, amount: r.amount === null ? null : Number(r.amount), date: r.receipt_date, note: r.note || '', path: r.file_path, userId: r.user_id })],
+            weight_entries: ['weights', 'measured_at', r => ({
+                id: r.id, val: Number(r.value), time: new Date(r.measured_at).toLocaleString('he-IL'), ts: Date.parse(r.measured_at)
+            })],
+            meal_logs: ['menu', 'eaten_at', r => ({
+                id: r.id, name: r.name, cal: r.calories, cat: r.category || '', date: new Date(r.eaten_at).toLocaleString('he-IL')
+            })],
+            water_logs: ['water', 'day', null]
+        };
+
+        async function loadTable(table) {
+            const [key, order, map] = CLOUD_TABLES[table];
+            const { data, error } = await sb.from(table).select('*').order(order);
+            if (error) {
+                console.error(table, error);
+                return;
+            }
+            if (table === 'water_logs') {
+                cloud.water = {};
+                data.forEach(r => { cloud.water[new Date(r.day + 'T00:00').toLocaleDateString('he-IL')] = r.glasses; });
+            } else {
+                cloud[key] = data.map(map);
+            }
+        }
+
+        function loadAll() {
+            return Promise.all(Object.keys(CLOUD_TABLES).map(loadTable));
+        }
+
+        function refreshViews() {
+            document.getElementById('eyeBtn').textContent = hidePrivate() ? '🙈' : '👁️';
+            renderWorkouts();
+            renderFuel();
+            renderPlan();
+            renderReceipts();
+            displayTasks();
+            displayShopping();
+            displayWeight();
+            displayMenu();
+        }
+
+        // Every change is shown right away, then saved; the table is reloaded so
+        // the screen matches what is really stored.
+        async function cloudWrite(request, table) {
+            const { error } = await request;
+            if (error) {
+                console.error(table, error);
+                showError('❌ לא נשמר, נסה שוב');
+            }
+            await loadTable(table);
+            refreshViews();
+        }
+
+        function subscribeRealtime() {
+            if (realtime) sb.removeChannel(realtime);
+            realtime = sb.channel('couple-' + coupleId);
+            Object.keys(CLOUD_TABLES).forEach(table => {
+                realtime.on('postgres_changes', { event: '*', schema: 'public', table: table }, () => {
+                    loadTable(table).then(refreshViews);
+                });
+            });
+            realtime.subscribe();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && coupleId) loadAll().then(refreshViews);
+        });
+
+        // Sign-in
+        function setAuthMsg(msg) {
+            document.getElementById('authMsg').textContent = msg;
+        }
+
+        function authFields() {
+            return {
+                email: document.getElementById('authEmail').value.trim().toLowerCase(),
+                password: document.getElementById('authPassword').value
+            };
+        }
+
+        let recoveryMode = false;
+
+        async function sendPasswordReset() {
+            const { email } = authFields();
+            if (!email) {
+                setAuthMsg('⚠️ הכנס את האימייל ואז לחץ "שכחתי סיסמה"');
+                return;
+            }
+            const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+            setAuthMsg(error ? '❌ ' + error.message : '📧 נשלח מייל לאיפוס סיסמה. פתח את הקישור שבמייל.');
+        }
+
+        async function saveNewPassword() {
+            const password = document.getElementById('authPassword').value;
+            if (password.length < 6) {
+                setAuthMsg('⚠️ סיסמה חדשה של לפחות 6 תווים');
+                return;
+            }
+            const { error } = await sb.auth.updateUser({ password });
+            if (error) {
+                setAuthMsg('❌ ' + error.message);
+                return;
+            }
+            recoveryMode = false;
+            const { data } = await sb.auth.getSession();
+            handleSession(data.session);
+        }
+
+        async function signIn() {
+            if (recoveryMode) return saveNewPassword();
+            const { email, password } = authFields();
+            if (!email || !password) {
+                setAuthMsg('⚠️ הכנס אימייל וסיסמה');
+                return;
+            }
+            setAuthMsg('⏳ מתחבר...');
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) {
+                setAuthMsg(/confirm/i.test(error.message)
+                    ? '📧 צריך קודם לאשר את המייל (בדוק בתיבת הדואר)'
+                    : '❌ אימייל או סיסמה שגויים');
+            }
+        }
+
+        async function signUp() {
+            const { email, password } = authFields();
+            if (!email || password.length < 6) {
+                setAuthMsg('⚠️ אימייל וסיסמה של לפחות 6 תווים');
+                return;
+            }
+            setAuthMsg('⏳ נרשם...');
+            const { data, error } = await sb.auth.signUp({
+                email, password, options: { emailRedirectTo: location.origin + location.pathname }
+            });
+            if (error) {
+                setAuthMsg('❌ ' + error.message);
+            } else if (!data.session) {
+                setAuthMsg('📧 נשלח אליך מייל אישור. אשר אותו, חזור לכאן ולחץ "כניסה".');
+            }
+        }
+
+        async function logout() {
+            await sb.auth.signOut();
+        }
+
+        const WORKOUT_FLOOR = 150;
+        const WORKOUT_POSES = {
+            stand: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, 146] },
+            squat: { h: [120, 55], sh: [112, 72], el: [135, 85], wr: [150, 85], hp: [95, 110], kn: [125, 118], an: [100, 146] },
+            lunge: { h: [100, 25], sh: [100, 50], el: [95, 75], wr: [95, 95], hp: [100, 95], kn: [125, 120], an: [125, 146], kn2: [85, 138], an2: [60, 146] },
+            wallSit: { h: [75, 35], sh: [75, 58], el: [95, 75], wr: [110, 75], hp: [75, 100], kn: [115, 100], an: [115, 146], wall: true },
+            heelRaise: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, 138] },
+            wallReach: { h: [100, 25], sh: [100, 50], el: [75, 50], wr: [48, 50], hp: [100, 95], kn: [100, 125], an: [100, 146], wall: true },
+            wallPushUp: { h: [70, 40], sh: [90, 60], el: [70, 72], wr: [45, 66], hp: [110, 95], kn: [110, 125], an: [110, 146], wall: true },
+            pushUpHigh: { h: [40, 80], sh: [60, 82], el: [60, 114], wr: [60, 146], hp: [120, 92], kn: [150, 96], an: [180, 112] },
+            pushUpLow: { h: [40, 100], sh: [60, 102], el: [78, 122], wr: [60, 146], hp: [120, 112], kn: [150, 116], an: [180, 130] },
+            plankGood: { h: [40, 85], sh: [60, 92], el: [60, 130], wr: [95, 130], hp: [120, 100], kn: [155, 104], an: [180, 122] },
+            plankBad: { h: [40, 85], sh: [60, 92], el: [60, 130], wr: [95, 130], hp: [120, 120], kn: [155, 126], an: [180, 130] },
+            bridgeDown: { h: [30, 138], sh: [55, 138], el: [70, 146], wr: [90, 146], hp: [100, 142], kn: [130, 125], an: [135, 146] },
+            bridgeUp: { h: [30, 135], sh: [55, 135], el: [70, 140], wr: [90, 140], hp: [100, 110], kn: [130, 112], an: [135, 146] },
+            crunchDown: { h: [40, 140], sh: [65, 140], el: [70, 146], wr: [90, 146], hp: [105, 145], kn: [135, 118], an: [160, 145] },
+            crunchUp: { h: [50, 112], sh: [75, 112], el: [85, 132], wr: [95, 132], hp: [105, 128], kn: [130, 100], an: [155, 128] },
+            birdStart: { h: [55, 80], sh: [70, 95], el: [70, 125], wr: [70, 146], hp: [120, 95], kn: [120, 125], an: [120, 146] },
+            birdReach: { h: [55, 80], sh: [70, 95], el: [45, 100], wr: [20, 100], hp: [120, 95], kn: [125, 125], an: [175, 135], kn2: [120, 125], an2: [120, 146], arm2: [70, 146] },
+            supermanDown: { h: [40, 135], sh: [65, 135], el: [45, 140], wr: [20, 140], hp: [110, 138], kn: [135, 138], an: [165, 140] },
+            supermanUp: { h: [40, 110], sh: [65, 108], el: [40, 96], wr: [20, 90], hp: [110, 108], kn: [135, 108], an: [165, 104] },
+            marchDown: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, 146] },
+            marchUp: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [88, 95], hp: [100, 95], kn: [100, 125], an: [100, 146], kn2: [122, 110], an2: [126, 138] },
+            bottleGobletStart: { h: [100, 25], sh: [100, 50], el: [104, 74], wr: [116, 64], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [116, 64] },
+            bottleGobletDown: { h: [120, 55], sh: [112, 72], el: [118, 82], wr: [114, 68], hp: [95, 110], kn: [125, 118], an: [100, 146], bottle: [114, 68] },
+            bottleCurlDown: { h: [100, 25], sh: [100, 50], el: [96, 78], wr: [96, 102], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [96, 102] },
+            bottleCurlUp: { h: [100, 25], sh: [100, 50], el: [96, 78], wr: [112, 64], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [112, 64] },
+            bottlePressDown: { h: [100, 25], sh: [100, 50], el: [120, 62], wr: [112, 44], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [112, 44] },
+            bottlePressUp: { h: [100, 25], sh: [100, 50], el: [115, 40], wr: [118, 18], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [118, 18] },
+            bottleRaiseDown: { h: [100, 25], sh: [100, 50], el: [96, 78], wr: [100, 102], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [100, 102] },
+            bottleRaiseUp: { h: [100, 25], sh: [100, 50], el: [125, 52], wr: [150, 52], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [150, 52] },
+            bottleRowDown: { h: [150, 70], sh: [130, 82], el: [130, 108], wr: [130, 134], hp: [90, 100], kn: [100, 125], an: [100, 146], bottle: [130, 134] },
+            bottleRowUp: { h: [150, 70], sh: [130, 82], el: [145, 100], wr: [135, 116], hp: [90, 100], kn: [100, 125], an: [100, 146], bottle: [135, 116] },
+            bottleHingeStart: { h: [100, 25], sh: [100, 50], el: [88, 75], wr: [92, 100], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [92, 100] },
+            bottleHingeDown: { h: [150, 62], sh: [130, 75], el: [125, 100], wr: [118, 122], hp: [100, 95], kn: [100, 125], an: [100, 146], bottle: [118, 122] }
+        };
+
+        function workoutFigure(key) {
+            const p = WORKOUT_POSES[key];
+            const line = (a, b) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;
+            const dot = a => `<circle cx="${a[0]}" cy="${a[1]}" r="4" class="joint"/>`;
+            const parts = [
+                `<circle cx="${p.h[0]}" cy="${p.h[1]}" r="11" class="head"/>`,
+                line(p.sh, p.hp), line(p.sh, p.el), line(p.el, p.wr), line(p.hp, p.kn), line(p.kn, p.an),
+                dot(p.sh), dot(p.el), dot(p.hp), dot(p.kn)
+            ];
+            if (p.kn2) parts.push(line(p.hp, p.kn2), line(p.kn2, p.an2), dot(p.kn2));
+            if (p.arm2) parts.push(line(p.sh, p.arm2));
+            if (p.bottle) parts.push(`<rect x="${p.bottle[0] - 8}" y="${p.bottle[1] - 14}" width="16" height="30" rx="6" class="bottle"/>`);
+            const wall = p.wall ? `<line x1="22" y1="10" x2="22" y2="${WORKOUT_FLOOR}" class="wall"/>` : '';
+            return `<svg viewBox="0 0 200 160" class="workout-fig" role="img" aria-label="תנוחה">
+                ${wall}
+                <line x1="10" y1="${WORKOUT_FLOOR}" x2="190" y2="${WORKOUT_FLOOR}" class="floor"/>
+                <g class="figure">${parts.join('')}</g>
+            </svg>`;
+        }
+
+        function workoutPair(pair) {
+            const [a, b, labelA, labelB] = pair;
+            return `<div class="figure-pair">
+                <figure>${workoutFigure(a)}<figcaption>${labelA}</figcaption></figure>
+                <figure>${workoutFigure(b)}<figcaption>${labelB}</figcaption></figure>
+            </div>`;
+        }
+
+        const WORKOUTS = [
+            { area: 'רגליים', name: 'סקוואט', muscles: ['ירכיים קדמיות', 'ישבנים', 'ליבה'], yt: 'bodyweight squat proper form tutorial', reps: '15 חזרות', link: ['https://www.fitfatherproject.com/bodyweight-squats/', 'סרטון והוראות מפורטות'], pair: ['stand', 'squat', 'עומדים', 'יורדים'], steps: ['עומדים עם רגליים ברוחב הכתפיים, ידיים קדימה.', 'יורדים כאילו מתיישבים על כיסא, הגב ישר.', 'דוחפים מהעקבים וחוזרים לעמידה.'], tip: 'הברכיים הולכות באותו כיוון של האצבעות.' },
+            { area: 'רגליים', name: 'לאנג׳ אחורי', muscles: ['ירכיים', 'ישבנים', 'שיווי משקל'], yt: 'reverse lunge proper form tutorial', reps: '10 לכל רגל', pair: ['stand', 'lunge', 'עומדים', 'לאנג׳'], steps: ['עומדים זקופים, צועדים צעד אחורה עם רגל אחת.', 'יורדים עד שהברך האחורית כמעט נוגעת ברצפה.', 'דוחפים חזרה לעמידה ומחליפים רגל.'], tip: 'הברך הקדמית נשארת מעל הקרסול.' },
+            { area: 'רגליים', name: 'כיסא קיר', muscles: ['ירכיים קדמיות'], back: true, yt: 'wall sit exercise proper form', reps: '30 שניות', pair: ['wallSit', 'wallSit', 'תנוחה', 'תנוחה מוחזקת'], steps: ['נשענים עם הגב על קיר.', 'מחליקים למטה עד שהברכיים בזווית של 90 מעלות.', 'נשארים במקום ונושמים.'], tip: 'מתחילים עם 15 שניות ומעלים בהדרגה.' },
+            { area: 'רגליים', name: 'הרמות עקבים', muscles: ['שוקיים'], yt: 'standing calf raise proper form', reps: '20 חזרות', pair: ['stand', 'heelRaise', 'עומדים', 'עולים על קצות האצבעות'], steps: ['עומדים זקופים, ליד קיר או משענת לאיזון.', 'מרימים את העקבים ועומדים על קצות האצבעות.', 'יורדים לאט לעמידה רגילה.'], tip: 'אפשר לעשות על מדרגה כדי להעמיק את התנועה.' },
+            { area: 'חזה וידיים', name: 'שכיבות שמיכה בקיר', muscles: ['חזה', 'כתפיים', 'טריספס'], yt: 'wall push up proper form', reps: '15 חזרות', link: ['https://www.exercise.com/exercises/wall-push-up/', 'סרטון והוראות מפורטות'], pair: ['wallReach', 'wallPushUp', 'ידיים על הקיר', 'מתקרבים לקיר'], steps: ['עומדים מול קיר, ידיים על הקיר בגובה הכתפיים.', 'מתקרבים לקיר בגוף ישר, והמרפקים מתכופפים.', 'דוחפים חזרה למצב ההתחלה.'], tip: 'זה התרגיל הקל ביותר לחזה. ככל שהרגליים רחוקות יותר מהקיר, התרגיל קשה יותר.' },
+            { area: 'חזה וידיים', name: 'שכיבות שמיכה', muscles: ['חזה', 'כתפיים', 'טריספס', 'ליבה'], yt: 'push up proper form beginner', reps: '10 חזרות', pair: ['pushUpHigh', 'pushUpLow', 'למעלה', 'למטה'], steps: ['מתמקמים על הידיים והבהונות, הגוף ישר מהראש עד העקבים.', 'מכופפים את המרפקים ויורדים עד שהחזה קרוב לרצפה.', 'דוחפים חזרה למצב ההתחלה.'], tip: 'אם קשה, אפשר לעשות על הברכיים, בלי לשנות את הגב.' },
+            { area: 'בטן וליבה', name: 'פלאנק', muscles: ['ליבה', 'בטן עמוקה', 'גב תחתון'], back: true, yt: 'plank exercise proper form', reps: '30 שניות', pair: ['plankGood', 'plankBad', 'נכון', 'טעות נפוצה: האגן יורד'], steps: ['מתמקמים על האמות והבהונות.', 'הגוף ישר כמו קרש, והבטן מכווצת.', 'נושמים רגיל ומחזיקים.'], tip: 'אם האגן יורד, מקצרים את הזמן ומחזיקים שוב.' },
+            { area: 'בטן וליבה', name: 'גשר ישבנים', muscles: ['ישבנים', 'ירכיים אחוריות', 'גב תחתון'], back: true, yt: 'glute bridge proper form', reps: '15 חזרות', pair: ['bridgeDown', 'bridgeUp', 'שוכבים', 'מרימים'], steps: ['שוכבים על הגב, ברכיים כפופות, כפות הרגליים על הרצפה.', 'דוחפים את האגן למעלה עד שהגוף ישר מהברכיים לכתפיים.', 'מחזיקים שנייה ויורדים לאט.'], tip: 'מכווצים את הישבן למעלה, ולא את הגב התחתון.' },
+            { area: 'בטן וליבה', name: 'כפיפות בטן', muscles: ['בטן'], caution: 'עם דיסק בגב, הכפיפות המלאות עלולות להחמיר. עשה רק הרמה קטנה של הכתפיים, או דלג.', yt: 'crunch exercise proper form', reps: '12 חזרות', pair: ['crunchDown', 'crunchUp', 'שוכבים', 'מרימים את הכתפיים'], steps: ['שוכבים על הגב, ברכיים כפופות, ידיים לצד הראש.', 'מרימים את הכתפיים מהרצפה בעזרת הבטן.', 'יורדים לאט בלי למשוך את הצוואר.'], tip: 'העיניים מביטות כלפי התקרה.' },
+            { area: 'בטן וליבה', name: 'ציפור-כלב', muscles: ['ליבה', 'גב תחתון', 'יציבה'], back: true, yt: 'bird dog exercise proper form', reps: '10 לכל צד', pair: ['birdStart', 'birdReach', 'על ארבע', 'יד ורגל נגדית'], steps: ['על הידיים והברכיים, הגב ישר.', 'מרימים יד אחת והרגל הנגדית, ישר לאורך הגוף.', 'מחזיקים שנייה, מחליפים צד.'], tip: 'מסתכלים על הרצפה כדי לשמור על צוואר ישר.' },
+            { area: 'גב ויציבה', name: 'סופרמן', muscles: ['גב תחתון', 'ישבנים', 'גב עליון'], back: true, yt: 'superman exercise proper form', reps: '12 חזרות', pair: ['supermanDown', 'supermanUp', 'שוכבים על הבטן', 'מרימים'], steps: ['שוכבים על הבטן, ידיים מושטות קדימה.', 'מרימים ידיים ורגליים מהרצפה בו-זמנית.', 'מחזיקים שנייה ויורדים.'], tip: 'מרימים באיטיות, בלי לזרוק את הראש אחורה.' },
+            { area: 'כללי', name: 'הליכה במקום', muscles: ['לב וכושר', 'רגליים'], back: true, yt: 'march in place warm up exercise', reps: '3 דקות', pair: ['marchDown', 'marchUp', 'רגל על הרצפה', 'ברך למעלה'], steps: ['עומדים ומרימים ברכיים לסירוגין.', 'מניעים את הידיים בקצב ההליכה.', 'ממשיכים בקצב קל.'], tip: 'מתאים להתחממות לפני התרגילים ולסיום.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'סקוואט גובלט', muscles: ['ירכיים', 'ישבנים', 'ליבה'], yt: 'goblet squat water bottle form', reps: '12 חזרות', pair: ['bottleGobletStart', 'bottleGobletDown', 'בקבוק ליד החזה', 'יורדים'], steps: ['עומדים, מחזיקים את הבקבוק בשתי ידיים ליד החזה.', 'יורדים לסקוואט והמרפקים בתוך הברכיים.', 'דוחפים מהעקבים וחוזרים לעמידה.'], tip: 'הבקבוק עוזר לשמור על הגב זקוף.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'כיפוף מרפקים', muscles: ['זרועות (ביספס)'], yt: 'water bottle bicep curl form', reps: '12 חזרות', pair: ['bottleCurlDown', 'bottleCurlUp', 'ידיים למטה', 'מרימים לכתף'], steps: ['עומדים, בקבוק ביד אחת, המרפק צמוד לגוף.', 'מכופפים את המרפק ומרימים את הבקבוק לכיוון הכתף.', 'מורידים לאט. מחליפים יד.'], tip: 'לא להניף את הגוף כדי להרים. רק המרפק זז.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'לחיצה מעל הראש', muscles: ['כתפיים', 'טריספס'], yt: 'water bottle overhead press form', reps: '10 חזרות', pair: ['bottlePressDown', 'bottlePressUp', 'בקבוק ליד הכתף', 'דוחפים למעלה'], steps: ['עומדים, בקבוק בשתי ידיים ליד הכתפיים.', 'דוחפים את הבקבוק ישר למעלה עד שהידיים מושטות.', 'מורידים לאט לכתפיים.'], tip: 'הגב נשאר ישר ולא מתקמר.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'הרמה קדימה', muscles: ['כתפיים'], yt: 'water bottle front raise form', reps: '12 חזרות', pair: ['bottleRaiseDown', 'bottleRaiseUp', 'בקבוק למטה', 'מרימים לגובה הכתף'], steps: ['עומדים, בקבוק ביד אחת מול הירך.', 'מרימים את היד ישר קדימה עד גובה הכתף.', 'מורידים לאט.'], tip: 'בלי לנדנד את הגוף. התנועה רק מהכתף.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'משיכה לגב', muscles: ['גב עליון', 'ביספס'], caution: 'שמור על הגב ישר לגמרי. אם הגב מתעגל, הורד את המשקל או דלג על התרגיל.', yt: 'water bottle bent over row form', reps: '12 חזרות לכל יד', link: ['https://workoutlabs.com/exercise-guide/bent-over-two-armed-water-bottle-rows/', 'מדריך עם תמונות'], pair: ['bottleRowDown', 'bottleRowUp', 'ידיים מושטות', 'מושכים למותן'], steps: ['מתכופפים קדימה מהמותניים, הגב ישר, בקבוק ביד אחת.', 'מושכים את המרפק אחורה לכיוון המותן, והשכמה מתקרבת לשדרה.', 'מורידים לאט. מחליפים יד.'], tip: 'שומרים על הגב ישר לאורך כל התרגיל, כדי לחזק את הגב.' },
+            { area: 'עם בקבוק מים (1.5 ליטר)', name: 'דדליפט רומני', muscles: ['ירכיים אחוריות', 'ישבנים', 'גב תחתון'], caution: 'עם דיסק, התכופפות קדימה תחת עומס מכבידה. עשה בלי עומס, והגב ישר לגמרי.', yt: 'water bottle romanian deadlift form', reps: '12 חזרות', pair: ['bottleHingeStart', 'bottleHingeDown', 'עומדים', 'מתכופפים מהמותן'], steps: ['עומדים עם הבקבוק מול הירכיים, ברכיים מעט כפופות.', 'מזיזים את האגן אחורה והגב נשאר ישר, עד שמרגישים מתיחה בצד האחורי של הירך.', 'דוחפים את האגן קדימה וחוזרים לעמידה.'], tip: 'זו תנועה מהירכיים, לא מהגב התחתון.' }
+        ];
+
+        const isBackSection = w => w.back || w.name === 'משיכה לגב' || w.name === 'דדליפט רומני';
+
+        function renderWorkouts() {
+            const dateInput = document.getElementById('workoutDate');
+            if (!dateInput.value) dateInput.value = isoDay(new Date());
+            const day = dateInput.value;
+            renderDayActivities(day);
+            renderSportSummary();
+            const openNames = new Set([...document.querySelectorAll('.workout-card[open]')].map(d => d.dataset.name));
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const card = w => {
+                const doneBy = cloud.workoutLogs.filter(l => l.exercise === w.name && l.doneOn === day).map(l => l.userId);
+                const mine = doneBy.includes(userId);
+                const who = doneBy.length ? '✓ עשו ביום הזה: ' + doneBy.map(personName).join(', ') : 'עוד לא סומן ביום הזה';
+                return `<details class="workout-card" data-name="${w.name}" ${openNames.has(w.name) ? 'open' : ''}>
+                        <summary>
+                            <span>${w.name}${w.back ? ' <i class="back-badge">לגב</i>' : ''}</span>
+                            <small>${w.reps}</small>
+                            <button class="quick-mark ${mine ? 'on' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWorkoutLog(${w.i})" aria-label="סמן שעשיתי">${mine ? '✓' : '○'}</button>
+                        </summary>
+                        ${workoutPair(w.pair)}
+                        ${w.link ? `<a class="workout-link" href="${w.link[0]}" target="_blank" rel="noopener">📺 ${w.link[1]}</a>` : ''}
+                        <a class="workout-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(w.yt)}" target="_blank" rel="noopener">▶️ צפייה ביוטיוב</a>
+                        <div class="muscle-chips">${(w.muscles || []).map(m => `<span class="muscle-chip">${m}</span>`).join('')}</div>
+                        <ol>${w.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+                        ${w.caution ? `<p class="workout-caution">⚠️ ${w.caution}</p>` : ''}
+                        <p class="workout-tip">💡 ${w.tip}</p>
+                        <p class="workout-who">${who}</p>
+                        <button class="chip" onclick="toggleWorkoutLog(${w.i})">${mine ? '✓ עשיתי ביום הזה (לביטול, לחץ)' : 'סמן שעשיתי ביום הזה'}</button>
+                        <button class="chip" onclick="addWorkoutToday(${w.i})">＋ להוסיף להיום</button>
+                    </details>`;
+            };
+            const backItems = WORKOUTS.map((w, i) => ({ ...w, i })).filter(isBackSection);
+            const restItems = WORKOUTS.map((w, i) => ({ ...w, i })).filter(w => !isBackSection(w));
+            const areas = [...new Set(restItems.map(w => w.area))];
+            document.getElementById('workoutsList').innerHTML =
+                `<div class="group-title">🔙 תרגילים לגב (לדיסק)</div>` + backItems.map(card).join('') +
+                `<div class="group-title">🏋️ שאר הגוף</div>` + areas.map(area => `
+                    <div class="subgroup-title">${area}</div>
+                    ${restItems.filter(w => w.area === area).map(card).join('')}
+                `).join('');
+        }
+
+        renderWorkouts();
+
+        function addActivity() {
+            const input = document.getElementById('activityName');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ כתוב איזו פעילות');
+                return;
+            }
+            const day = document.getElementById('workoutDate').value || isoDay(new Date());
+            input.value = '';
+            cloudWrite(sb.from('workout_logs').insert({ couple_id: coupleId, user_id: userId, exercise: name, done_on: day }), 'workout_logs');
+        }
+
+        function removeActivity(id) {
+            cloudWrite(sb.from('workout_logs').delete().eq('id', id), 'workout_logs');
+        }
+
+        function renderSportSummary() {
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const now = new Date();
+            const keyOf = offset => isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+            const last7 = [...Array(7).keys()].map(keyOf);
+            const activeDays = logs => new Set(logs.map(l => l.doneOn));
+            const streakOf = logs => {
+                const days = activeDays(logs);
+                let offset = days.has(keyOf(0)) ? 0 : 1;
+                let count = 0;
+                while (days.has(keyOf(offset))) { count++; offset++; }
+                return count;
+            };
+            const card = name => {
+                const logs = cloud.workoutLogs.filter(l => personName(l.userId) === name);
+                const week = logs.filter(l => last7.includes(l.doneOn));
+                return `<div class="activity-person"><b>${name}</b>
+                    <div>ב-7 ימים האחרונים: ${activeDays(week).size} ימים פעילים · ${week.length} רישומים</div>
+                    <div>רצף נוכחי: ${streakOf(logs)} ימים</div></div>`;
+            };
+            const together = new Set(cloud.workoutLogs.filter(l => last7.includes(l.doneOn)).map(l => l.doneOn));
+            document.getElementById('sportSummary').innerHTML = card('חיים') + card('דבורה') +
+                `<div class="activity-person"><b>שניכם ביחד</b><div>ב-7 ימים האחרונים: ${together.size} ימים שמישהו מאיתנו היה פעיל</div></div>`;
+        }
+
+        function renderDayActivities(day) {
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const logs = cloud.workoutLogs.filter(l => l.doneOn === day);
+            document.getElementById('dayActivities').innerHTML = ['חיים', 'דבורה'].map(name => {
+                const mine = logs.filter(l => personName(l.userId) === name);
+                const items = mine.length
+                    ? mine.map(l => `<div class="activity-row"><span>${l.exercise}</span>${l.userId === userId ? `<button class="chip-del" onclick="removeActivity('${l.id}')">✕</button>` : ''}</div>`).join('')
+                    : '<div class="muted">לא נרשם</div>';
+                return `<div class="activity-person"><b>${name}</b>${items}</div>`;
+            }).join('');
+        }
+
+        function toggleWorkoutLog(index) {
+            const name = WORKOUTS[index].name;
+            const day = document.getElementById('workoutDate').value || isoDay(new Date());
+            const mine = cloud.workoutLogs.find(l => l.exercise === name && l.doneOn === day && l.userId === userId);
+            if (mine) {
+                cloudWrite(sb.from('workout_logs').delete().eq('id', mine.id), 'workout_logs');
+            } else {
+                cloudWrite(sb.from('workout_logs').insert({ couple_id: coupleId, user_id: userId, exercise: name, done_on: day }), 'workout_logs');
+            }
+        }
+
+        function mailText(subject, body) {
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        function mailToday() {
+            if (window.todayText) mailText('להיום', window.todayText);
+        }
+
+        function mailTomorrow() {
+            if (window.tomorrowText) mailText('תזכורת למחר', window.tomorrowText);
+        }
+
+        function shareToday() {
+            if (!window.todayText) return;
+            window.open('https://wa.me/?text=' + encodeURIComponent(window.todayText), '_blank', 'noopener');
+        }
+
+        function shareTomorrow() {
+            if (!window.tomorrowText) return;
+            window.open('https://wa.me/?text=' + encodeURIComponent(window.tomorrowText), '_blank', 'noopener');
+        }
+
+        function addWorkoutToday(index) {
+            const w = WORKOUTS[index];
+            createTask(`אימון: ${w.name} (${w.reps})`, isoDay(new Date()), 'both');
+        }
+
+        function addFuel() {
+            const amount = parseFloat(document.getElementById('fuelAmount').value);
+            if (!amount || amount <= 0) {
+                showError('⚠️ כתוב כמה שילמת');
+                return;
+            }
+            const day = document.getElementById('fuelDate').value || isoDay(new Date());
+            document.getElementById('fuelAmount').value = '';
+            cloudWrite(sb.from('fuel_logs').insert({ couple_id: coupleId, user_id: userId, amount: amount, filled_on: day }), 'fuel_logs');
+        }
+
+        function removeFuel(id) {
+            if (!confirm('למחוק את התדלוק הזה?')) return;
+            cloudWrite(sb.from('fuel_logs').delete().eq('id', id), 'fuel_logs');
+        }
+
+        function renderFuel() {
+            const dateInput = document.getElementById('fuelDate');
+            if (!dateInput.value) dateInput.value = isoDay(new Date());
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const now = new Date();
+            const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const sum = list => list.reduce((s, f) => s + f.amount, 0);
+            const logs = [...cloud.fuelLogs].sort((a, b) => b.filledOn.localeCompare(a.filledOn));
+            const monthLogs = logs.filter(f => f.filledOn.startsWith(monthPrefix));
+            const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+            document.getElementById('fuelSummary').innerHTML = `
+                <div class="activity-person"><b>החודש</b><div>${money(sum(monthLogs))} · ${monthLogs.length} תדלוקים</div></div>
+                <div class="activity-person"><b>סך הכול</b><div>${money(sum(logs))} · ${logs.length} תדלוקים</div></div>`;
+            document.getElementById('fuelList').innerHTML = logs.length
+                ? logs.map(f => `<div class="activity-row">
+                    <span>${f.filledOn} · ${personName(f.userId)} · ${money(f.amount)}</span>
+                    ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}')">✕</button>` : ''}
+                  </div>`).join('')
+                : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
+        }
+
+        let planWeekStart = null;
+        const PLAN_SLOTS = [['breakfast', '🌅 בוקר'], ['lunch', '☀️ צהריים'], ['dinner', '🌙 ערב']];
+        const PLAN_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+        function planStartOfWeek() {
+            if (!planWeekStart) {
+                const now = new Date();
+                planWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            }
+            return planWeekStart;
+        }
+
+        function shiftPlanWeek(delta) {
+            const s = planStartOfWeek();
+            planWeekStart = new Date(s.getFullYear(), s.getMonth(), s.getDate() + delta * 7);
+            renderPlan();
+        }
+
+        function renderPlan() {
+            const start = planStartOfWeek();
+            const endDay = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+            document.getElementById('planWeekTitle').textContent = `${formatDay(isoDay(start))} – ${formatDay(isoDay(endDay))}`;
+            const days = [...Array(7).keys()].map(i => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+            document.getElementById('planGrid').innerHTML = days.map((d, i) => {
+                const key = isoDay(d);
+                const slots = PLAN_SLOTS.map(([slot, label]) => {
+                    const entry = cloud.mealPlan.find(m => m.date === key && m.slot === slot);
+                    return `<label class="plan-slot">${label}<input type="text" value="${entry ? entry.meal.replace(/"/g, '&quot;') : ''}" placeholder="מה אוכלים?" onchange="savePlanSlot('${key}', '${slot}', this.value)"></label>`;
+                }).join('');
+                return `<div class="plan-day ${key === isoDay(new Date()) ? 'today' : ''}"><div class="plan-day-title">${PLAN_DAYS[i]} · ${d.getDate()}/${d.getMonth() + 1}</div>${slots}</div>`;
+            }).join('');
+        }
+
+        function savePlanSlot(date, slot, value) {
+            const meal = value.trim();
+            if (!meal) {
+                cloudWrite(sb.from('meal_plan').delete().eq('couple_id', coupleId).eq('plan_date', date).eq('slot', slot), 'meal_plan');
+                return;
+            }
+            cloudWrite(sb.from('meal_plan').upsert({ couple_id: coupleId, plan_date: date, slot: slot, meal: meal, updated_by: userId }), 'meal_plan');
+        }
+
+        function shrinkImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('image'))), 'image/jpeg', 0.8);
+                };
+                img.onerror = () => reject(new Error('image'));
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        async function addReceipt(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            const amountRaw = document.getElementById('receiptAmount').value;
+            const amount = amountRaw === '' ? null : parseFloat(amountRaw);
+            const day = document.getElementById('receiptDate').value || isoDay(new Date());
+            const note = document.getElementById('receiptNote').value.trim();
+            try {
+                const blob = await shrinkImage(file);
+                const path = `${coupleId}/${crypto.randomUUID()}.jpg`;
+                const { error: uploadError } = await sb.storage.from('receipts').upload(path, blob, { contentType: 'image/jpeg' });
+                if (uploadError) throw uploadError;
+                document.getElementById('receiptAmount').value = '';
+                document.getElementById('receiptNote').value = '';
+                await cloudWrite(sb.from('receipts').insert({ couple_id: coupleId, user_id: userId, amount: amount, receipt_date: day, note: note || null, file_path: path }), 'receipts');
+            } catch (e) {
+                console.error(e);
+                showError('❌ הקבלה לא נשמרה, נסה שוב');
+            }
+        }
+
+        async function openReceipt(path) {
+            const { data, error } = await sb.storage.from('receipts').createSignedUrl(path, 300);
+            if (error) {
+                showError('❌ לא נפתחה הקבלה');
+                return;
+            }
+            window.open(data.signedUrl, '_blank', 'noopener');
+        }
+
+        async function removeReceipt(id, path) {
+            if (!confirm('למחוק את הקבלה?')) return;
+            await sb.storage.from('receipts').remove([path]);
+            cloudWrite(sb.from('receipts').delete().eq('id', id), 'receipts');
+        }
+
+        function renderReceipts() {
+            const dateInput = document.getElementById('receiptDate');
+            if (!dateInput.value) dateInput.value = isoDay(new Date());
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+            const now = new Date();
+            const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const list = [...cloud.receipts].sort((a, b) => b.date.localeCompare(a.date));
+            const monthTotal = list.filter(r => r.date.startsWith(monthPrefix)).reduce((s, r) => s + (r.amount || 0), 0);
+            document.getElementById('receiptsSummary').innerHTML = `<div class="activity-person"><b>החודש</b><div>${money(monthTotal)} · ${list.filter(r => r.date.startsWith(monthPrefix)).length} קבלות</div></div>`;
+            document.getElementById('receiptsList').innerHTML = list.length
+                ? list.map(r => `<div class="activity-row">
+                    <span>${r.date} · ${personName(r.userId)} · ${r.amount === null ? 'ללא סכום' : money(r.amount)}${r.note ? ' · ' + r.note : ''}</span>
+                    <span>
+                        <button class="chip-del" onclick="openReceipt('${r.path}')">📄</button>
+                        ${r.userId === userId ? `<button class="chip-del" onclick="removeReceipt('${r.id}', '${r.path}')">✕</button>` : ''}
+                    </span>
+                  </div>`).join('')
+                : '<div class="empty-state">עוד לא נשמרו קבלות</div>';
+        }
+
+        function exportBackup() {
+            const data = getData();
+            const backup = { exportedAt: new Date().toISOString(), tasks: data.tasks, shopping: data.shopping, weights: data.weights, menu: data.menu, water: data.water };
+            const fileName = `health-backup-${isoDay(new Date())}.json`;
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showSuccess('✅ הגיבוי נשמר בהורדות');
+        }
+
+        // Supabase recommends not awaiting its own calls inside this callback.
+        sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                recoveryMode = true;
+                setAuthMsg('🔑 הכנס סיסמה חדשה ולחץ "כניסה"');
+                return;
+            }
+            if (recoveryMode) return;
+            setTimeout(() => handleSession(session), 0);
+        });
+
+        async function handleSession(session) {
+            if (!session) {
+                showLogin();
+                return;
+            }
+            if (session.user.id === userId && coupleId) return;
+            userId = session.user.id;
+            setAuthMsg('⏳ טוען...');
+
+            const { data: couple, error } = await sb.rpc('join_couple');
+            if (error) {
+                const msg = /not allowed/.test(error.message)
+                    ? '⛔ המייל הזה לא מורשה באפליקציה'
+                    : '❌ שגיאה בחיבור: ' + error.message;
+                await sb.auth.signOut();
+                setAuthMsg(msg);
+                return;
+            }
+            coupleId = couple;
+            const { data: memberRows } = await sb.from('couple_members').select('user_id, display_name');
+            members = memberRows || [];
+            await loadAll();
+            subscribeRealtime();
+            enterApp();
+        }
+
+        function enterApp() {
+            currentUser = memberKey(userId);
+            setAuthMsg('');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('active');
+            document.getElementById('currentUser').textContent = WHO[currentUser] || '';
+            displayPhotos();
+            displayTips();
+            refreshViews();
+            initWeightDate();
+            showSection('home', 'home');
+        }
+
+        function showLogin() {
+            userId = null;
+            coupleId = null;
             currentUser = null;
+            if (realtime) {
+                sb.removeChannel(realtime);
+                realtime = null;
+            }
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('appContainer').classList.remove('active');
         }
 
-        // Shared Notes (Firebase Sync)
-        function addSharedNote() {
-            const noteText = document.getElementById('noteInput').value.trim();
-            if (!noteText) {
-                showError('⚠️ כתוב משהו');
-                return;
-            }
-
-            const noteData = {
-                author: currentUser === 'chaim' ? '👨 חיים' : '👩 דבורה',
-                content: noteText,
-                timestamp: new Date().toLocaleString('he-IL'),
-                id: Date.now()
-            };
-
-            database.ref('sharedNotes').push(noteData, (error) => {
-                if (error) {
-                    showError('❌ שגיאה בשמירה');
-                    console.error(error);
-                } else {
-                    document.getElementById('noteInput').value = '';
-                    showSuccess('✅ סיכרון נשמר!');
-                    loadSharedNotes();
-                }
-            });
-        }
-
-        function loadSharedNotes() {
-            database.ref('sharedNotes').on('value', (snapshot) => {
-                const notes = snapshot.val() || {};
-                displaySharedNotes(notes);
-            });
-        }
-
-        function displaySharedNotes(notesObj) {
-            const list = document.getElementById('notesList');
-            const notesArray = Object.entries(notesObj).map(([key, val]) => ({...val, firebaseKey: key}));
-            notesArray.reverse();
-
-            if (notesArray.length === 0) {
-                list.innerHTML = '<div class="empty-state">אין סיכרונות עדיין</div>';
-                return;
-            }
-
-            list.innerHTML = notesArray.map(note => `
-                <div class="note-item">
-                    <div class="note-author">${note.author}</div>
-                    <div class="note-content">${note.content}</div>
-                    <div class="note-date">${note.timestamp}</div>
-                    <button class="delete-btn" onclick="deleteNote('${note.firebaseKey}');">🗑️ מחק</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteNote(key) {
-            database.ref('sharedNotes/' + key).remove();
-        }
-
-        // Local Data Functions (localStorage)
-        function getData() {
+        // Local-only data (photos, tips). Older versions also kept tasks etc. here;
+        // those fields are left untouched.
+        function getLocal() {
             try {
-                const data = localStorage.getItem(DATA_KEY);
-                return data ? JSON.parse(data) : getDefaultData();
+                return JSON.parse(localStorage.getItem(DATA_KEY)) || {};
             } catch (e) {
-                return getDefaultData();
+                return {};
             }
         }
 
-        function getDefaultData() {
-            return { photos: [], menu: [], weights: [], tasks: [], aiTips: [] };
+        function hidePrivate() {
+            return !!(cloud.settings[0] && cloud.settings[0].hidePrivate);
+        }
+
+        function togglePrivacy() {
+            const next = !hidePrivate();
+            cloud.settings = [{ hidePrivate: next }];
+            refreshViews();
+            cloudWrite(sb.from('user_settings').upsert({ user_id: userId, hide_private: next }), 'user_settings');
+        }
+
+        function getData() {
+            const local = getLocal();
+            const tasks = hidePrivate() ? cloud.tasks.filter(t => t.category === 'work' && !t.isPrivate) : cloud.tasks;
+            return { photos: local.photos || [], aiTips: local.aiTips || [], ...cloud, tasks };
         }
 
         function saveData(data) {
             try {
-                localStorage.setItem(DATA_KEY, JSON.stringify(data));
+                localStorage.setItem(DATA_KEY, JSON.stringify({ ...getLocal(), photos: data.photos, aiTips: data.aiTips }));
             } catch (e) {
                 showError('❌ שגיאה בשמירה');
             }
         }
 
-        function switchTab(event, tabName) {
+        const WATER_GOAL = 8;
+        const CALORIE_GOAL = 1800;
+
+        function todayKey() {
+            return new Date().toLocaleDateString('he-IL');
+        }
+
+        let currentSection = { id: 'home', nav: 'home' };
+        let previousSection = { id: 'home', nav: 'home' };
+
+        function showSection(sectionId, navId) {
+            if (sectionId !== currentSection.id) previousSection = currentSection;
+            currentSection = { id: sectionId, nav: navId };
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.toggle('active', el.dataset.nav === navId));
+            document.querySelector('.content').scrollTop = 0;
+        }
+
+        const WHO = { chaim: '👨 חיים', devorah: '👩 דבורה', both: '👫 שנינו' };
+
+        function isoDay(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatDay(iso, long) {
+            const now = new Date();
+            const offsets = { [isoDay(now)]: 'היום' };
+            offsets[isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1))] = 'מחר';
+            offsets[isoDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))] = 'אתמול';
+            const date = new Date(iso + 'T00:00');
+            const text = date.toLocaleDateString('he-IL', long
+                ? { weekday: 'long', day: 'numeric', month: 'long' }
+                : { weekday: 'short', day: 'numeric', month: 'numeric' });
+            return offsets[iso] ? (long ? `${offsets[iso]}, ${text}` : offsets[iso]) : text;
+        }
+
+        function taskRow(t, showDelete) {
+            const overdue = !t.completed && t.due && t.due < isoDay(new Date());
+            const time = t.start ? (t.end ? `${t.start}–${t.end}` : t.start) : '';
+            const owner = t.isPrivate ? '🔒 פרטי' : (WHO[t.who] || '');
+            const requester = t.requestedBy ? `ביקש: ${t.requestedBy}` : '';
+            const approver = t.approvedBy ? `מאשר: ${t.approvedBy}` : '';
+            const category = (TASK_CATEGORIES.find(([key]) => key === t.category) || [])[1] || '';
+            const meta = [category, t.due ? formatDay(t.due) : '', time, owner, requester, approver].filter(Boolean).join(' · ');
+            const badge = !t.completed && t.status === 'in_progress' ? ' <i class="badge">בביצוע</i>' : '';
+            return `
+                <div class="home-row ${t.completed ? 'done' : ''} ${overdue ? 'overdue' : ''}">
+                    <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${t.i})">${t.completed ? '✓' : ''}</button>
+                    <div class="row-main" onclick="openTaskSheet(${t.i})"><span>${t.name}${badge}</span>${meta ? `<small>${meta}</small>` : ''}</div>
+                    ${showDelete ? `<button class="icon-btn" onclick="deleteTask(${t.i})">🗑️</button>` : ''}
+                </div>
+            `;
+        }
+
+        // Tasks on the same day are listed by start time; untimed ones last.
+        function byTime(a, b) {
+            return (a.start || '99:99').localeCompare(b.start || '99:99');
+        }
+
+        // New / edit task sheet
+        const QUICK_TASKS = ['קניות', 'ניקיון הבית', 'כביסה', 'בישול', 'תור לרופא', 'תור לקוסמטיקאית', 'תור לעיסוי', 'אימון', 'הליכה', 'תשלום חשבונות', 'להתקשר', 'סידורים'];
+        const DEVORAH_ONLY_TASKS = ['תור לקוסמטיקאית'];
+        let editingTask = null;
+        let sheetVisibility = 'shared';
+        let sheetWho = 'both';
+
+        function openTaskSheet(index, presetDue) {
+            editingTask = index === null || index === undefined ? null : index;
+            const t = editingTask === null ? null : cloud.tasks[editingTask];
+            if (t && !t.id) return;
+            document.getElementById('tsHeading').textContent = t ? 'עריכת אירוע' : 'אירוע חדש';
+            document.getElementById('tsSubmit').textContent = t ? 'שמור שינויים' : 'הוסף אירוע';
+            document.getElementById('tsDelete').style.display = t ? 'block' : 'none';
+            document.getElementById('tsTitle').value = t ? t.name : '';
+            document.getElementById('tsDue').value = t ? t.due : (presetDue || isoDay(new Date()));
+            document.getElementById('tsStart').value = t ? t.start : '';
+            document.getElementById('tsEnd').value = t ? t.end : '';
+            document.getElementById('tsStatus').value = t ? t.status : 'pending';
+            document.getElementById('tsNotes').value = t ? t.notes : '';
+            sheetCategory = t ? t.category : '';
+            renderCategoryChips();
+            document.getElementById('tsRequestedBy').value = t ? t.requestedBy : '';
+            document.getElementById('tsApprovedBy').value = t ? t.approvedBy : '';
+            document.getElementById('tsRequestedChips').innerHTML = ['חיים', 'דבורה']
+                .map(name => `<button class="chip" onclick="document.getElementById('tsRequestedBy').value = '${name}'">${name}</button>`).join('');
+            // Only the author can make a task private (the database enforces this too).
+            document.getElementById('tsPrivate').disabled = !!t && t.createdBy !== userId;
+            document.getElementById('tsTitleChips').innerHTML = QUICK_TASKS
+                .filter(q => currentUser === 'devorah' || !DEVORAH_ONLY_TASKS.includes(q))
+                .map(q =>`<button class="chip" onclick="document.getElementById('tsTitle').value = '${q}'">${q}</button>`).join('');
+            sheetWho = t ? t.who : 'both';
+            setTaskVisibility(t && t.isPrivate ? 'private' : 'shared');
+            document.getElementById('taskSheet').classList.add('open');
+            document.getElementById('taskSheet').scrollTop = 0;
+        }
+
+        function closeTaskSheet() {
+            document.getElementById('taskSheet').classList.remove('open');
+            editingTask = null;
+        }
+
+        function setTaskVisibility(visibility) {
+            sheetVisibility = visibility;
+            document.getElementById('tsShared').classList.toggle('active', visibility === 'shared');
+            document.getElementById('tsPrivate').classList.toggle('active', visibility === 'private');
+            document.getElementById('tsWhoBlock').style.display = visibility === 'private' ? 'none' : 'block';
+            renderWhoChips();
+        }
+
+        const TASK_CATEGORIES = [['work', '💼 עבודה'], ['appointment', '🩺 תור'], ['personal', '👤 אישי']];
+        let sheetCategory = '';
+
+        function renderCategoryChips() {
+            document.getElementById('tsCategoryChips').innerHTML = TASK_CATEGORIES
+                .map(([key, label]) => `<button class="chip ${sheetCategory === key ? 'on' : ''}" onclick="setTaskCategory('${key}')">${label}</button>`).join('');
+        }
+
+        function setTaskCategory(key) {
+            sheetCategory = sheetCategory === key ? '' : key;
+            renderCategoryChips();
+        }
+
+        function setTaskWho(who) {
+            sheetWho = who;
+            renderWhoChips();
+        }
+
+        function renderWhoChips() {
+            document.getElementById('tsWhoChips').innerHTML = ['both', 'chaim', 'devorah']
+                .map(key => `<button class="chip ${sheetWho === key ? 'on' : ''}" onclick="setTaskWho('${key}')">${WHO[key]}</button>`).join('');
+        }
+
+        function saveTaskSheet() {
+            const title = document.getElementById('tsTitle').value.trim();
+            if (!title) {
+                document.getElementById('tsTitle').focus();
+                return;
+            }
+            const t = editingTask === null ? null : cloud.tasks[editingTask];
+            const isPrivate = sheetVisibility === 'private';
+            const status = document.getElementById('tsStatus').value;
+            const local = {
+                name: title,
+                due: document.getElementById('tsDue').value,
+                start: document.getElementById('tsStart').value,
+                end: document.getElementById('tsEnd').value,
+                notes: document.getElementById('tsNotes').value.trim(),
+                requestedBy: document.getElementById('tsRequestedBy').value.trim(),
+                approvedBy: document.getElementById('tsApprovedBy').value.trim(),
+                category: sheetCategory,
+                isPrivate: isPrivate,
+                who: isPrivate ? currentUser : sheetWho,
+                status: status,
+                completed: status === 'done'
+            };
+            const row = {
+                title: local.name,
+                due_date: local.due || null,
+                start_time: local.start || null,
+                end_time: local.end || null,
+                notes: local.notes || null,
+                requested_by: local.requestedBy || null,
+                approved_by: local.approvedBy || null,
+                category: local.category || null,
+                is_private: isPrivate,
+                assigned_to: isPrivate ? userId : memberUserId(sheetWho),
+                status: status,
+                done: local.completed
+            };
+            if (t) {
+                if (local.completed !== t.completed) {
+                    row.done_at = local.completed ? new Date().toISOString() : null;
+                    local.doneDay = local.completed ? isoDay(new Date()) : '';
+                }
+                Object.assign(t, local);
+                cloudWrite(sb.from('task_items').update(row).eq('id', t.id), 'task_items');
+            } else {
+                if (local.completed) row.done_at = new Date().toISOString();
+                cloud.tasks.push({ ...local, createdBy: userId, doneDay: local.completed ? isoDay(new Date()) : '', date: new Date().toLocaleString('he-IL') });
+                cloudWrite(sb.from('task_items').insert({ ...row, couple_id: coupleId, created_by: userId }), 'task_items');
+            }
+            closeTaskSheet();
+            displayTasks();
+            showSuccess(t ? '✅ נשמר!' : '✅ נוסף!');
+        }
+
+        function deleteFromSheet() {
+            if (editingTask === null) return;
+            const index = editingTask;
+            closeTaskSheet();
+            deleteTask(index);
+        }
+
+        // Calendar
+        let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        let calSelected = isoDay(new Date());
+
+        function moveMonth(delta) {
+            calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + delta, 1);
+            renderCalendar();
+        }
+
+        function selectDay(iso) {
+            calSelected = iso;
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const data = getData();
+            const today = isoDay(new Date());
+            const year = calMonth.getFullYear();
+            const month = calMonth.getMonth();
+            document.getElementById('calTitle').textContent = calMonth.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
+
+            const openByDay = {};
+            data.tasks.forEach(t => {
+                if (t.due && !t.completed) openByDay[t.due] = (openByDay[t.due] || 0) + 1;
+            });
+
+            let cells = '';
+            for (let i = 0; i < new Date(year, month, 1).getDay(); i++) cells += '<div></div>';
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const iso = isoDay(new Date(year, month, d));
+                const cls = `cal-day ${iso === today ? 'today' : ''} ${iso === calSelected ? 'selected' : ''}`;
+                cells += `<button class="${cls}" onclick="selectDay('${iso}')">${d}${openByDay[iso] ? `<i>${openByDay[iso]}</i>` : ''}</button>`;
+            }
+            document.getElementById('calGrid').innerHTML = cells;
+
+            document.getElementById('calDayTitle').textContent = formatDay(calSelected, true);
+            const dayTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => t.due === calSelected).sort(byTime);
+            document.getElementById('calDayList').innerHTML = dayTasks.length
+                ? dayTasks.map(t => taskRow(t, true)).join('')
+                : '<div class="empty-state">אין משימות ביום הזה</div>';
+
+            const upcoming = data.tasks.map((t, i) => ({ ...t, i })).filter(t => !t.completed && t.due && t.due >= today)
+                .sort((a, b) => a.due.localeCompare(b.due) || byTime(a, b));
+            document.getElementById('calUpcoming').innerHTML = upcoming.length
+                ? upcoming.map(t => taskRow(t, false)).join('')
+                : '<div class="empty-state">אין משימות קרובות</div>';
+        }
+
+        function addCalendarTask() {
+            const input = document.getElementById('calTask');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ הכנס שם');
+                return;
+            }
+            input.value = '';
+            createTask(name, calSelected, 'both');
+        }
+
+        // Shopping list
+        function shoppingRow(item, showDelete) {
+            return `
+                <div class="home-row ${item.done ? 'done' : ''}">
+                    <button class="check ${item.done ? 'on' : ''}" onclick="toggleShopping(${item.i})">${item.done ? '✓' : ''}</button>
+                    <div class="row-main"><span>${item.name}</span></div>
+                    ${showDelete ? `<button class="icon-btn" onclick="deleteShopping(${item.i})">🗑️</button>` : ''}
+                </div>
+            `;
+        }
+
+        // Household staples for a couple. One tap adds to the shopping list, another removes it.
+        const STAPLES = [
+            ['🥛 חלב, גבינות וביצים', ['חלב', 'ביצים', 'קוטג׳', 'גבינה לבנה', 'גבינה צהובה', 'גבינת שמנת', 'גבינה בולגרית', 'יוגורט', 'מעדנים', 'לבן', 'חמאה', 'שמנת מתוקה', 'שמנת לבישול', 'שמנת חמוצה', 'חלב סויה / שקדים']],
+            ['🍞 לחם ומאפים', ['לחם', 'לחם מלא', 'חלה', 'פיתות', 'לחמניות', 'טורטיות', 'קרקרים', 'פריכיות', 'פירורי לחם']],
+            ['🥬 ירקות', ['עגבניות', 'מלפפונים', 'בצל', 'בצל ירוק', 'שום', 'תפוחי אדמה', 'בטטה', 'גזר', 'פלפל אדום', 'פלפל ירוק', 'חסה', 'כרוב', 'קישואים', 'חצילים', 'פטריות', 'אבוקדו', 'לימונים', 'פטרוזיליה', 'כוסברה', 'שמיר', 'נענע', 'ברוקולי', 'כרובית', 'סלק']],
+            ['🍎 פירות', ['תפוחים', 'בננות', 'תפוזים', 'קלמנטינות', 'אגסים', 'ענבים', 'תותים', 'אבטיח / מלון', 'פירות העונה', 'תמרים']],
+            ['🥩 בשר, עוף ודגים', ['חזה עוף', 'שוקיים / כרעיים', 'עוף שלם', 'שניצל', 'בשר טחון', 'בשר לבישול', 'נקניקיות', 'פסטרמה / נקניק', 'סלמון', 'פילה דג', 'כבד עוף']],
+            ['🥫 מזווה', ['אורז', 'פסטה', 'ספגטי', 'קוסקוס', 'פתיתים', 'בורגול', 'קינואה', 'קמח', 'סוכר', 'מלח', 'שמן קנולה', 'שמן זית', 'חומץ', 'רסק עגבניות', 'עגבניות מרוסקות', 'טונה', 'תירס', 'חומוס (שימורים)', 'עדשים', 'שעועית', 'אפונה (שימורים)', 'זיתים', 'מלפפונים חמוצים', 'טחינה', 'דבש', 'ריבה', 'ממרח שוקולד', 'חמאת בוטנים', 'קורנפלקס', 'שיבולת שועל', 'אגוזים ושקדים', 'אבקת אפייה', 'שמרים', 'וניל']],
+            ['☕ קפה ושתייה', ['קפה', 'קפה נמס', 'קפסולות קפה', 'תה', 'תה צמחים', 'קקאו', 'מים מינרליים', 'סודה', 'מיץ', 'מיץ ענבים', 'סירופ פטל']],
+            ['🧂 תבלינים ורטבים', ['פלפל שחור', 'פפריקה', 'כמון', 'כורכום', 'קינמון', 'אורגנו', 'אבקת מרק', 'שום גבישי', 'קטשופ', 'מיונז', 'חרדל', 'רוטב סויה', 'רוטב צ׳ילי', 'חריסה', 'סילאן']],
+            ['🧊 קפואים', ['ירקות קפואים', 'אפונה קפואה', 'שעועית ירוקה קפואה', 'בורקס', 'מלאווח', 'פיצה קפואה', 'בצק עלים', 'גלידה', 'פירות קפואים']],
+            ['🍫 חטיפים ומתוקים', ['שוקולד', 'ביסקוויטים', 'עוגיות', 'וופלים', 'במבה', 'ביסלי', 'צ׳יפס', 'פופקורן', 'גרעינים', 'בייגלה', 'חטיפי אנרגיה', 'עוגה']],
+            ['🧻 ניקיון ובית', ['נייר טואלט', 'מגבות נייר', 'טישו', 'סבון כלים', 'טבליות למדיח', 'אבקת / ג׳ל כביסה', 'מרכך כביסה', 'אקונומיקה', 'נוזל לניקוי רצפה', 'ספוגים', 'מטליות', 'שקיות זבל', 'נייר כסף', 'ניילון נצמד', 'נייר אפייה', 'שקיות אוכל', 'סוללות', 'נורות']],
+            ['🧴 טיפוח והיגיינה', ['שמפו', 'מרכך שיער', 'סבון גוף', 'סבון ידיים', 'משחת שיניים', 'מברשות שיניים', 'חוט דנטלי', 'דאודורנט', 'קרם לחות', 'קרם הגנה', 'סכיני גילוח', 'צמר גפן', 'מגבונים', 'פלסטרים']]
+        ];
+
+        document.getElementById('shopCat').innerHTML = '<option value="">קטגוריה אוטומטית</option>'
+            + STAPLES.map(([title]) => `<option value="${title}">${title}</option>`).join('')
+            + '<option value="📦 אחר">📦 אחר</option>';
+
+        const STAPLE_CATEGORY = new Map(STAPLES.flatMap(([title, items]) => items.map(name => [name, title])));
+        const OTHER_CATEGORY = '📦 אחר';
+
+        function categoryFor(name, chosen) {
+            return chosen || STAPLE_CATEGORY.get(name.trim()) || '';
+        }
+
+        function addShoppingName(name, category) {
+            const cat = categoryFor(name, category);
+            cloud.shopping.push({ name: name, done: false, category: cat });
+            displayShopping();
+            cloudWrite(sb.from('shopping_items').insert({ couple_id: coupleId, created_by: userId, name: name, category: cat || null }), 'shopping_items');
+        }
+
+        function toggleStaple(groupIndex, itemIndex) {
+            const name = STAPLES[groupIndex][1][itemIndex];
+            const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
+            if (index >= 0) {
+                deleteShopping(index);
+            } else {
+                addShoppingName(name);
+            }
+        }
+
+        function addToCategory(gi) {
+            const input = document.getElementById(`catIn${gi}`);
+            const name = input.value.trim();
+            if (!name) return;
+            const title = gi < STAPLES.length ? STAPLES[gi][0] : OTHER_CATEGORY;
+            input.value = '';
+            if (cloud.catalog.some(c => c.category === title && c.name === name)) return;
+            cloudWrite(sb.from('shopping_catalog').insert({ couple_id: coupleId, created_by: userId, name: name, category: title }), 'shopping_catalog');
+        }
+
+        function removeFromCategory(name, title) {
+            if (!confirm(`למחוק את "${name}" מהקטגוריה בלבד? הפריט לא יימחק מרשימת הקניות.`)) return;
+            const row = cloud.catalog.find(c => c.category === title && c.name === name);
+            if (row && row.id) cloudWrite(sb.from('shopping_catalog').delete().eq('id', row.id), 'shopping_catalog');
+        }
+
+        function toggleCatalogChip(name, title) {
+            const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
+            if (index >= 0) {
+                deleteShopping(index);
+            } else {
+                addShoppingName(name, title);
+            }
+        }
+
+        function toggleCustomChip(name) {
+            const index = cloud.shopping.findIndex(item => !item.done && item.name === name);
+            if (index >= 0) deleteShopping(index);
+        }
+
+        function renderStaples() {
+            const container = document.getElementById('staples');
+            // Keep open groups open across re-renders.
+            const openGroups = new Set([...container.querySelectorAll('.staple-group[open]')].map(d => d.dataset.group));
+            const open = cloud.shopping.filter(item => !item.done);
+            const onList = new Set(open.map(item => item.name));
+            const groups = [...STAPLES, [OTHER_CATEGORY, []]];
+            container.innerHTML = groups.map(([title, items], gi) => {
+                const saved = cloud.catalog.filter(c => c.category === title && !items.includes(c.name));
+                const extra = open.filter(item => !STAPLE_CATEGORY.has(item.name.trim()) && !saved.some(c => c.name === item.name) && (item.category || OTHER_CATEGORY) === title);
+                const count = items.filter(name => onList.has(name)).length + saved.filter(c => onList.has(c.name)).length + extra.length;
+                const esc = s => s.replace(/"/g, '&quot;');
+                return `
+                    <details class="staple-group" data-group="${gi}" ${openGroups.has(String(gi)) ? 'open' : ''}>
+                        <summary>${title}${count ? `<b>${count}</b>` : ''}</summary>
+                        <div class="chips">
+                            ${items.map((name, ii) => `<button class="chip ${onList.has(name) ? 'on' : ''}" onclick="toggleStaple(${gi}, ${ii})">${onList.has(name) ? '✓ ' : ''}${name}</button>`).join('')}
+                            ${saved.map(c => `<span class="chip-pair"><button class="chip ${onList.has(c.name) ? 'on' : ''}" data-name="${esc(c.name)}" data-cat="${esc(title)}" onclick="toggleCatalogChip(this.dataset.name, this.dataset.cat)">${onList.has(c.name) ? '✓ ' : ''}${c.name}</button><button class="chip-del" data-name="${esc(c.name)}" data-cat="${esc(title)}" onclick="removeFromCategory(this.dataset.name, this.dataset.cat)" aria-label="מחק מהקטגוריה">✕</button></span>`).join('')}
+                            ${extra.map(item => `<button class="chip on" data-name="${esc(item.name)}" data-cat="${esc(title)}" onclick="toggleCatalogChip(this.dataset.name, this.dataset.cat)">✓ ${item.name}</button>`).join('')}
+                        </div>
+                        <div class="home-add" style="margin-top: 10px;">
+                            <input type="text" id="catIn${gi}" placeholder="הוסף ל${title}..." onkeydown="if (event.key === 'Enter') addToCategory(${gi})">
+                            <button onclick="addToCategory(${gi})">+</button>
+                        </div>
+                    </details>
+                `;
+            }).join('');
+        }
+
+        function addShopping(inputId) {
+            const input = document.getElementById(inputId);
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ מה לקנות?');
+                return;
+            }
+            const chosen = document.getElementById('shopCat').value;
+            input.value = '';
+            addShoppingName(name, chosen);
+        }
+
+        function toggleShopping(index) {
+            const item = cloud.shopping[index];
+            if (!item.id) return;
+            item.done = !item.done;
+            displayShopping();
+            cloudWrite(sb.from('shopping_items').update({
+                done: item.done, done_at: item.done ? new Date().toISOString() : null
+            }).eq('id', item.id), 'shopping_items');
+        }
+
+        function deleteShopping(index) {
+            const [item] = cloud.shopping.splice(index, 1);
+            displayShopping();
+            if (item.id) cloudWrite(sb.from('shopping_items').delete().eq('id', item.id), 'shopping_items');
+        }
+
+        function clearBought() {
+            const ids = cloud.shopping.filter(item => item.done && item.id).map(item => item.id);
+            cloud.shopping = cloud.shopping.filter(item => !item.done);
+            displayShopping();
+            if (ids.length) cloudWrite(sb.from('shopping_items').delete().in('id', ids), 'shopping_items');
+        }
+
+        function displayShopping() {
+            renderHome();
+            renderStaples();
+            const data = getData();
+            const items = data.shopping.map((item, i) => ({ ...item, i }));
+            const open = items.filter(item => !item.done);
+            const bought = items.filter(item => item.done);
+            const list = document.getElementById('shoppingList');
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-state">הרשימה ריקה</div>';
+                return;
+            }
+            list.innerHTML = (open.length ? `<div class="shop-summary">🛒 ${open.length} פריטים לקנות</div>` : '<div class="empty-state">הכול נקנה 🎉</div>')
+                + open.map(item => shoppingRow(item, true)).join('')
+                + (bought.length ? `
+                    <div class="group-title">✓ נקנו (${bought.length})</div>
+                    ${bought.map(item => shoppingRow(item, true)).join('')}
+                    <button class="home-action" onclick="clearBought()">🧹 נקה את מה שנקנה</button>
+                ` : '');
+        }
+
+        function goBack() {
+            showSection(previousSection.id, previousSection.nav);
+        }
+
+        function renderHome() {
+            const data = getData();
+            const today = todayKey();
+
+            const hour = new Date().getHours();
+            const greet = hour < 12 ? 'בוקר טוב' : hour < 18 ? 'צהריים טובים' : 'ערב טוב';
+            const name = currentUser === 'devorah' ? 'דבורה' : 'חיים';
+            document.getElementById('homeGreet').textContent = `${greet}, ${name} 👋`;
+            document.getElementById('homeDate').textContent = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            const isoToday = isoDay(new Date());
+            const todays = data.tasks.map((t, i) => ({ ...t, i })).filter(t =>
+                t.completed ? t.doneDay === isoToday : (!t.due || t.due <= isoToday)
+            ).sort(byTime);
+            const done = todays.filter(t => t.completed).length;
+            const total = todays.length;
+            const pct = total ? Math.round(done / total * 100) : 0;
+            document.getElementById('homeTasksDone').textContent = done;
+            document.getElementById('homeTasksTotal').textContent = total;
+            document.getElementById('homeRingPct').textContent = pct + '%';
+            document.getElementById('homeRing').style.setProperty('--p', (pct * 3.6) + 'deg');
+            const openToday = todays.filter(t => !t.completed);
+            document.getElementById('todayShare').style.display = openToday.length ? 'inline-block' : 'none';
+            document.getElementById('todayMail').style.display = openToday.length ? 'inline-block' : 'none';
+            window.todayText = openToday.length
+                ? `📋 להיום (${formatDay(isoToday, true)}):\n` + openToday.map(t => `• ${t.name}${t.start ? ' ב-' + t.start : ''}`).join('\n')
+                : '';
+            document.getElementById('homeTasks').innerHTML = total === 0
+                ? '<div class="empty-state">אין משימות להיום 🎉</div>'
+                : todays.map(t => taskRow(t, false)).join('');
+
+            const tomorrow = isoDay(new Date(Date.now() + 24 * 60 * 60 * 1000));
+            const tomorrowTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => !t.completed && t.due === tomorrow).sort(byTime);
+            document.getElementById('homeTomorrowCard').style.display = tomorrowTasks.length ? 'block' : 'none';
+            document.getElementById('homeTomorrowDate').textContent = formatDay(tomorrow, true);
+            document.getElementById('homeTomorrow').innerHTML = tomorrowTasks.map(t => taskRow(t, false)).join('');
+            document.getElementById('tomorrowShare').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
+            document.getElementById('tomorrowMail').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
+            window.tomorrowText = tomorrowTasks.length
+                ? `🔔 ${formatDay(tomorrow, true)}:\n` + tomorrowTasks.map(t => `• ${t.name}${t.start ? ' ב-' + t.start : ''}`).join('\n')
+                : '';
+
+            const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done);
+            document.getElementById('homeShopTxt').textContent = openShop.length ? `${openShop.length} לקנות ←` : 'לרשימה ←';
+            document.getElementById('homeShop').innerHTML = openShop.length === 0
+                ? '<div class="empty-state">הרשימה ריקה</div>'
+                : openShop.slice(0, 5).map(item => shoppingRow(item, false)).join('')
+                  + (openShop.length > 5 ? `<div class="group-title">ועוד ${openShop.length - 5}...</div>` : '');
+
+            const todayIso = isoDay(new Date());
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const todayWorkouts = ['חיים', 'דבורה'].map(name => {
+                const done = cloud.workoutLogs.filter(l => l.doneOn === todayIso && personName(l.userId) === name).map(l => l.exercise);
+                return done.length ? `<div><b>${name}:</b> ${done.join(', ')}</div>` : `<div><b>${name}:</b> <span class="muted">עוד לא סומן</span></div>`;
+            }).join('');
+            const anyToday = cloud.workoutLogs.some(l => l.doneOn === todayIso);
+            const nudge = anyToday ? '' : `<div class="workout-nudge">עוד לא נרשמה פעילות היום. <button class="home-link" onclick="showSection('workouts', 'more')">לרישום ←</button></div>`;
+            document.getElementById('homeWorkouts').innerHTML = todayWorkouts + nudge;
+
+            const glasses = data.water[today] || 0;
+            document.getElementById('homeWaterTxt').textContent = `${glasses} מתוך ${WATER_GOAL} כוסות`;
+            document.getElementById('homeWater').innerHTML = Array.from({ length: WATER_GOAL }, (_, i) =>
+                `<button class="glass ${i < glasses ? 'on' : ''}" onclick="tapWater(${i})"></button>`
+            ).join('');
+
+            const weights = data.weights.map(w => parseFloat(w.val));
+            const last = weights.length ? weights[weights.length - 1] : null;
+            const avg = weights.length ? (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1) : null;
+            const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            let change = null;
+            for (let i = data.weights.length - 1; i >= 0; i--) {
+                if (data.weights[i].ts && data.weights[i].ts <= weekAgo) {
+                    change = (last - weights[i]).toFixed(1);
+                    break;
+                }
+            }
+            document.getElementById('homeWeightLast').textContent = last === null ? '—' : last;
+            document.getElementById('homeWeightAvg').textContent = avg === null ? '—' : avg;
+            document.getElementById('homeWeightChange').textContent = change === null ? '—' : (change > 0 ? '+' : '') + change;
+            document.getElementById('homeWeightTxt').textContent = weights.length ? `${weights.length} מדידות` : 'עדיין אין מדידות';
+
+            const kcal = data.menu
+                .filter(m => m.date && m.date.startsWith(today))
+                .reduce((sum, m) => sum + (parseFloat(m.cal) || 0), 0);
+            document.getElementById('homeCalTxt').textContent = `${kcal} מתוך ${CALORIE_GOAL}`;
+            document.getElementById('homeCalBar').style.width = Math.min(100, kcal / CALORIE_GOAL * 100) + '%';
+
+            document.getElementById('homePhotoTxt').textContent = `${data.photos.length} בגלריה`;
+        }
+
+        function tapWater(i) {
+            const current = cloud.water[todayKey()] || 0;
+            const glasses = (i + 1 === current) ? i : i + 1;
+            cloud.water[todayKey()] = glasses;
+            renderHome();
+            cloudWrite(sb.from('water_logs').upsert({
+                couple_id: coupleId, user_id: userId, day: isoDay(new Date()), glasses: glasses, updated_at: new Date().toISOString()
+            }), 'water_logs');
+        }
+
+        function createTask(name, due, who) {
+            cloud.tasks.push({ name: name, completed: false, due: due, who: who, doneDay: '', date: new Date().toLocaleString('he-IL'), isPrivate: false, createdBy: userId, status: 'pending', start: '', end: '', notes: '' });
+            displayTasks();
+            cloudWrite(sb.from('task_items').insert({
+                couple_id: coupleId, created_by: userId, title: name, due_date: due || null, assigned_to: memberUserId(who)
+            }), 'task_items');
+        }
+
+        function addHomeTask() {
+            const input = document.getElementById('homeTask');
+            const name = input.value.trim();
+            if (!name) {
+                showError('⚠️ הכנס שם');
+                return;
+            }
+            input.value = '';
+            createTask(name, isoDay(new Date()), currentUser || 'both');
+        }
+
+        function addHomeWeight() {
+            const input = document.getElementById('homeWeight');
+            if (!input.value) {
+                showError('⚠️ הכנס משקל');
+                return;
+            }
+            createWeight(parseFloat(input.value), new Date());
+            input.value = '';
+            showSuccess('✅ שמור!');
         }
 
         let selectedPhotoFile = null;
@@ -688,26 +2193,23 @@
             const name = document.getElementById('menuName').value.trim();
             const cal = document.getElementById('menuCal').value;
             const cat = document.getElementById('menuCat').value;
-            if (!name || !cal || !cat) {
-                showError('⚠️ מלא הכל');
+            const missing = [!name && 'שם', !cal && 'קלוריות', !cat && 'קטגוריה'].filter(Boolean);
+            if (missing.length) {
+                showError(`⚠️ חסר: ${missing.join(', ')}`);
                 return;
             }
-            const data = getData();
-            data.menu.push({
-                name: name,
-                cal: cal,
-                cat: cat,
-                date: new Date().toLocaleString('he-IL')
-            });
-            saveData(data);
+            cloud.menu.push({ name: name, cal: cal, cat: cat, date: new Date().toLocaleString('he-IL') });
             document.getElementById('menuName').value = '';
             document.getElementById('menuCal').value = '';
-            document.getElementById('menuCat').value = '';
             displayMenu();
             showSuccess('✅ נוסף!');
+            cloudWrite(sb.from('meal_logs').insert({
+                couple_id: coupleId, created_by: userId, name: name, calories: parseInt(cal, 10) || 0, category: cat
+            }), 'meal_logs');
         }
 
         function displayMenu() {
+            renderHome();
             const data = getData();
             const list = document.getElementById('menuList');
             if (data.menu.length === 0) {
@@ -725,10 +2227,9 @@
         }
 
         function deleteMenuItem(index) {
-            const data = getData();
-            data.menu.splice(index, 1);
-            saveData(data);
+            const [item] = cloud.menu.splice(index, 1);
             displayMenu();
+            if (item.id) cloudWrite(sb.from('meal_logs').delete().eq('id', item.id), 'meal_logs');
         }
 
         function generateTip() {
@@ -765,25 +2266,28 @@
             displayTips();
         }
 
+        function createWeight(value, when) {
+            cloud.weights.push({ val: value, time: when.toLocaleString('he-IL'), ts: when.getTime() });
+            displayWeight();
+            cloudWrite(sb.from('weight_entries').insert({
+                couple_id: coupleId, created_by: userId, value: value, measured_at: when.toISOString()
+            }), 'weight_entries');
+        }
+
         function addWeight() {
             const value = document.getElementById('weightValue').value;
             if (!value) {
                 showError('⚠️ הכנס משקל');
                 return;
             }
-            const data = getData();
-            const dateObj = document.getElementById('weightDate').value ? new Date(document.getElementById('weightDate').value) : new Date();
-            data.weights.push({
-                val: parseFloat(value),
-                time: dateObj.toLocaleString('he-IL')
-            });
-            saveData(data);
+            const dateValue = document.getElementById('weightDate').value;
+            createWeight(parseFloat(value), dateValue ? new Date(dateValue) : new Date());
             document.getElementById('weightValue').value = '';
-            displayWeight();
             showSuccess('✅ שמור!');
         }
 
         function displayWeight() {
+            renderHome();
             const data = getData();
             const list = document.getElementById('weightList');
             if (data.weights.length === 0) {
@@ -815,61 +2319,79 @@
         }
 
         function deleteWeight(index) {
-            const data = getData();
-            data.weights.splice(index, 1);
-            saveData(data);
+            const [item] = cloud.weights.splice(index, 1);
             displayWeight();
+            if (item.id) cloudWrite(sb.from('weight_entries').delete().eq('id', item.id), 'weight_entries');
         }
 
-        function addTask() {
-            const name = document.getElementById('taskName').value.trim();
-            if (!name) {
-                showError('⚠️ הכנס שם');
-                return;
-            }
-            const data = getData();
-            data.tasks.push({
-                name: name,
-                completed: false,
-                date: new Date().toLocaleString('he-IL')
-            });
-            saveData(data);
-            document.getElementById('taskName').value = '';
+
+
+        const TASK_FILTERS = [['all', 'הכל'], ['today', 'היום'], ['in_progress', 'בביצוע'], ['done', 'הושלמו']];
+        let taskFilter = 'all';
+        let taskCategoryFilter = '';
+
+        function setTaskFilter(key) {
+            taskFilter = key;
             displayTasks();
-            showSuccess('✅ נוסף!');
+        }
+
+        function setTaskCategoryFilter(key) {
+            taskCategoryFilter = taskCategoryFilter === key ? '' : key;
+            displayTasks();
+        }
+
+        function matchesTaskFilter(t, today) {
+            if (taskCategoryFilter && t.category !== taskCategoryFilter) return false;
+            if (taskFilter === 'today') return !t.completed && t.due === today;
+            if (taskFilter === 'in_progress') return !t.completed && t.status === 'in_progress';
+            if (taskFilter === 'done') return t.completed;
+            return true;
         }
 
         function displayTasks() {
+            renderHome();
+            renderCalendar();
             const data = getData();
             const list = document.getElementById('tasksList');
-            if (data.tasks.length === 0) {
+            const today = isoDay(new Date());
+            document.getElementById('taskFilters').innerHTML = TASK_FILTERS
+                .map(([key, label]) => `<button class="chip ${taskFilter === key ? 'on' : ''}" onclick="setTaskFilter('${key}')">${label}</button>`).join('');
+            document.getElementById('taskCategoryFilters').innerHTML = TASK_CATEGORIES
+                .map(([key, label]) => `<button class="chip ${taskCategoryFilter === key ? 'on' : ''}" onclick="setTaskCategoryFilter('${key}')">${label}</button>`).join('');
+            const items = data.tasks.map((t, i) => ({ ...t, i })).filter(t => matchesTaskFilter(t, today));
+            if (items.length === 0) {
                 list.innerHTML = '<div class="empty-state">אין משימות</div>';
                 return;
             }
-            list.innerHTML = data.tasks.map((task, i) => `
-                <div class="note-item ${task.completed ? 'completed' : ''}" style="${task.completed ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="font-weight: bold;">${task.name}</span>
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${i})" style="width: 18px; height: 18px; cursor: pointer;">
-                    </div>
-                    <div style="font-size: 12px; color: #999; margin-bottom: 10px;">${task.date}</div>
-                    <button class="delete-btn" onclick="deleteTask(${i});">🗑️ מחק</button>
-                </div>
+            const groups = [
+                ['⚠️ באיחור', items.filter(t => !t.completed && t.due && t.due < today)],
+                ['📌 היום', items.filter(t => !t.completed && t.due === today).sort(byTime)],
+                ['🗓️ בהמשך', items.filter(t => !t.completed && t.due > today).sort((a, b) => a.due.localeCompare(b.due))],
+                ['📋 בלי תאריך', items.filter(t => !t.completed && !t.due)],
+                ['✓ הושלמו', items.filter(t => t.completed)]
+            ];
+            list.innerHTML = groups.filter(([, g]) => g.length).map(([title, g]) => `
+                <div class="group-title">${title}</div>
+                ${g.map(t => taskRow(t, true)).join('')}
             `).join('');
         }
 
         function toggleTask(index) {
-            const data = getData();
-            data.tasks[index].completed = !data.tasks[index].completed;
-            saveData(data);
+            const task = cloud.tasks[index];
+            if (!task.id) return;
+            task.completed = !task.completed;
+            task.status = task.completed ? 'done' : 'pending';
+            task.doneDay = task.completed ? isoDay(new Date()) : '';
             displayTasks();
+            cloudWrite(sb.from('task_items').update({
+                done: task.completed, status: task.status, done_at: task.completed ? new Date().toISOString() : null
+            }).eq('id', task.id), 'task_items');
         }
 
         function deleteTask(index) {
-            const data = getData();
-            data.tasks.splice(index, 1);
-            saveData(data);
+            const [task] = cloud.tasks.splice(index, 1);
             displayTasks();
+            if (task.id) cloudWrite(sb.from('task_items').delete().eq('id', task.id), 'task_items');
         }
 
         function openAI(question) {
