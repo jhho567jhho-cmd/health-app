@@ -466,6 +466,7 @@
                 <div class="home-card" id="homeTomorrowCard" style="display: none;">
                     <h3>🔔 תזכורת <small id="homeTomorrowDate"></small></h3>
                     <div id="homeTomorrow"></div>
+                    <button class="home-link" id="tomorrowShare" onclick="shareTomorrow()" style="display: none;">📲 שלח בוואטסאפ</button>
                 </div>
 
                 <div class="home-card">
@@ -1226,6 +1227,11 @@
             }
         }
 
+        function shareTomorrow() {
+            if (!window.tomorrowText) return;
+            window.open('https://wa.me/?text=' + encodeURIComponent(window.tomorrowText), '_blank', 'noopener');
+        }
+
         function addWorkoutToday(index) {
             const w = WORKOUTS[index];
             createTask(`אימון: ${w.name} (${w.reps})`, isoDay(new Date()), 'both');
@@ -1955,6 +1961,10 @@
             document.getElementById('homeTomorrowCard').style.display = tomorrowTasks.length ? 'block' : 'none';
             document.getElementById('homeTomorrowDate').textContent = formatDay(tomorrow, true);
             document.getElementById('homeTomorrow').innerHTML = tomorrowTasks.map(t => taskRow(t, false)).join('');
+            document.getElementById('tomorrowShare').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
+            window.tomorrowText = tomorrowTasks.length
+                ? `🔔 ${formatDay(tomorrow, true)}:\n` + tomorrowTasks.map(t => `• ${t.name}${t.start ? ' ב-' + t.start : ''}`).join('\n')
+                : '';
 
             const openShop = data.shopping.map((item, i) => ({ ...item, i })).filter(item => !item.done);
             document.getElementById('homeShopTxt').textContent = openShop.length ? `${openShop.length} לקנות ←` : 'לרשימה ←';
