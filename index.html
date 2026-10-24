@@ -528,6 +528,7 @@
                     <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
                     <button onclick="showSection('plan', 'more')">🗓️ תפריט שבועי</button>
                     <button onclick="showSection('receipts', 'more')">🧾 קבלות</button>
+                    <button onclick="enablePhoneAlerts()">🔔 התראות לטלפון</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
                     <button onclick="logout()">🚪 התנתק</button>
                 </div>
@@ -1409,6 +1410,41 @@
                   </div>`).join('')
                 : '<div class="empty-state">עוד לא נשמרו קבלות</div>';
         }
+
+        function urlBase64ToUint8Array(base64) {
+            const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+            const raw = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+            return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+        }
+
+        async function enablePhoneAlerts() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                showError('⚠️ הדפדפן הזה לא תומך בהתראות');
+                return;
+            }
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                showError('⚠️ לא אושרו התראות בטלפון');
+                return;
+            }
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const res = await fetch(`${SUPABASE_URL}/functions/v1/send-reminders`, {
+                    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+                });
+                const { publicKey } = await res.json();
+                const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) });
+                const j = sub.toJSON();
+                const { error } = await sb.from('push_subscriptions').upsert({ endpoint: j.endpoint, user_id: userId, p256dh: j.keys.p256dh, auth: j.keys.auth });
+                if (error) throw error;
+                showSuccess('✅ ההתראות הופעלו במכשיר הזה');
+            } catch (e) {
+                console.error(e);
+                showError('❌ לא הצלחתי להפעיל התראות');
+            }
+        }
+
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
         function exportBackup() {
             const data = getData();
