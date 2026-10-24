@@ -1252,6 +1252,15 @@
             window.open('https://wa.me/?text=' + encodeURIComponent(window.tomorrowText), '_blank', 'noopener');
         }
 
+        function shareAi() {
+            if (!window.aiText) return;
+            window.open('https://wa.me/?text=' + encodeURIComponent(window.aiText), '_blank', 'noopener');
+        }
+
+        function mailAi() {
+            if (window.aiText) mailText('מעוזר הבריאות', window.aiText);
+        }
+
         function addWorkoutToday(index) {
             const w = WORKOUTS[index];
             createTask(`אימון: ${w.name} (${w.reps})`, isoDay(new Date()), 'both');
@@ -2413,7 +2422,12 @@
                 response = '👋 שלום! אני יכול לעזור עם:\n\n• משקל\n• בריאות\n• מתכונים\n• תרגילים\n\nנסה שוב!';
             }
             setTimeout(() => {
-                responseDiv.innerHTML = `<div style="background: #e8f5e9; border-right: 3px solid #4caf50; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; line-height: 1.6; color: #2e7d32; font-size: 13px;">${response}</div>`;
+                window.aiText = response;
+                responseDiv.innerHTML = `<div style="background: #e8f5e9; border-right: 3px solid #4caf50; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; line-height: 1.6; color: #2e7d32; font-size: 13px;">${response}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                        <button onclick="shareAi()">📱 שלח בוואטסאפ</button>
+                        <button onclick="mailAi()">✉️ שלח במייל</button>
+                    </div>`;
                 document.getElementById('aiQuestion').value = '';
             }, 600);
         }
