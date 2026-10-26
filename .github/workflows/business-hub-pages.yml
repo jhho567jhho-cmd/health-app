@@ -1,0 +1,23 @@
+name: Deploy business hub to GitHub Pages
+
+on:
+  push:
+    branches: [ccr-f9cef2c0-goewex]
+    paths: ['business-hub/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish business-hub folder to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./business-hub
+          destination_dir: business-hub
+          keep_files: true
