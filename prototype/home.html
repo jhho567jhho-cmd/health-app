@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פרוטוטייפ מסך הבית</title>
+    <style>
+        :root {
+            --brand: #667eea;
+            --brand-2: #764ba2;
+            --bg: #f5f6fb;
+            --card: #ffffff;
+            --text: #1f2330;
+            --muted: #8a90a2;
+            --ok: #2e9e6a;
+            --water: #3aa0e8;
+            --line: #e7e9f2;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #14161d; --card: #1e2130; --text: #f1f2f7; --muted: #9097ab; --line: #2a2e40;
+            }
+        }
+        :root[data-theme="dark"] {
+            --bg: #14161d; --card: #1e2130; --text: #f1f2f7; --muted: #9097ab; --line: #2a2e40;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); direction: rtl; min-height: 100vh; }
+        .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 90px; }
+
+        .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .hello { font-size: 22px; font-weight: 700; }
+        .date { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; display: grid; place-items: center; font-weight: 700; }
+
+        .hero { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .hero .big { font-size: 30px; font-weight: 800; }
+        .hero .small { font-size: 13px; opacity: .9; }
+        .ring { width: 74px; height: 74px; border-radius: 50%; background: conic-gradient(#fff 0 var(--p), rgba(255,255,255,.25) 0); display: grid; place-items: center; }
+        .ring span { width: 58px; height: 58px; border-radius: 50%; background: var(--brand); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+
+        .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+        .quick button { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 4px; font-size: 12px; color: var(--text); cursor: pointer; display: grid; gap: 4px; justify-items: center; font-family: inherit; }
+        .quick button b { font-size: 22px; }
+
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+        .card h3 { font-size: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .card h3 small { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+        .water { display: flex; gap: 6px; flex-wrap: wrap; }
+        .glass { width: 34px; height: 40px; border: 2px solid var(--water); border-radius: 4px 4px 10px 10px; cursor: pointer; background: transparent; padding: 0; }
+        .glass.on { background: linear-gradient(to top, var(--water) 80%, transparent 80%); }
+
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+        .row:first-of-type { border-top: 0; }
+        .check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line); display: grid; place-items: center; cursor: pointer; background: transparent; color: #fff; font-size: 14px; }
+        .check.on { background: var(--ok); border-color: var(--ok); }
+        .done { text-decoration: line-through; color: var(--muted); }
+
+        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+        .stats div { background: var(--bg); border-radius: 12px; padding: 10px 4px; }
+        .stats b { display: block; font-size: 18px; }
+        .stats small { color: var(--muted); font-size: 11px; }
+
+        svg.spark { width: 100%; height: 70px; display: block; }
+
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 10px 0 14px; max-width: 480px; margin: 0 auto; }
+        .nav a { font-size: 12px; color: var(--muted); text-decoration: none; display: grid; justify-items: center; gap: 2px; }
+        .nav a.active { color: var(--brand); font-weight: 700; }
+        .nav a b { font-size: 20px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <div class="top">
+        <div>
+            <div class="hello">שלום, חיים 👋</div>
+            <div class="date">שבת, 11 באוקטובר</div>
+        </div>
+        <div class="avatar">ח</div>
+    </div>
+
+    <div class="hero">
+        <div>
+            <div class="small">היום שלך</div>
+            <div class="big" id="doneCount">2 מתוך 5</div>
+            <div class="small">משימות הושלמו</div>
+        </div>
+        <div class="ring" id="ring" style="--p: 144deg"><span id="ringPct">40%</span></div>
+    </div>
+
+    <div class="quick">
+        <button onclick="alert('מסך הוספת משקל')"><b>⚖️</b>משקל</button>
+        <button onclick="alert('מסך הוספת ארוחה')"><b>🍽️</b>ארוחה</button>
+        <button onclick="alert('מסך הוספת אימון')"><b>🏃</b>אימון</button>
+        <button onclick="alert('מסך הוספת תמונה')"><b>📸</b>תמונה</button>
+    </div>
+
+    <div class="card">
+        <h3>💧 מים <small id="waterTxt">3 מתוך 8 כוסות</small></h3>
+        <div class="water" id="water"></div>
+    </div>
+
+    <div class="card">
+        <h3>✅ להיום <small>לחיצה על ✓ לסימון</small></h3>
+        <div class="row"><span>הליכה 30 דקות</span><button class="check on" onclick="tog(this)">✓</button></div>
+        <div class="row"><span>יוגה 20 דקות</span><button class="check" onclick="tog(this)"></button></div>
+        <div class="row"><span>8 כוסות מים</span><button class="check" onclick="tog(this)"></button></div>
+        <div class="row"><span>שינה 7–8 שעות</span><button class="check on" onclick="tog(this)">✓</button></div>
+        <div class="row"><span>ירקות בכל ארוחה</span><button class="check" onclick="tog(this)"></button></div>
+    </div>
+
+    <div class="card">
+        <h3>⚖️ משקל <small>השבוע</small></h3>
+        <div class="stats" style="margin-bottom: 10px;">
+            <div><b>78.4</b><small>אחרון</small></div>
+            <div><b>78.9</b><small>ממוצע</small></div>
+            <div><b style="color: var(--ok)">−0.6</b><small>שבוע</small></div>
+        </div>
+        <svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--brand)" stroke-width="3" points="0,20 50,26 100,24 150,34 200,38 250,44 300,46"/>
+            <polyline fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4" points="0,35 300,35"/>
+        </svg>
+    </div>
+
+    <div class="card">
+        <h3>🍽️ היום <small>קלוריות</small></h3>
+        <div class="stats">
+            <div><b>1,240</b><small>נאכל</small></div>
+            <div><b>1,760</b><small>יעד</small></div>
+            <div><b>3</b><small>ארוחות</small></div>
+        </div>
+    </div>
+
+</div>
+
+<nav class="nav">
+    <a class="active" href="#"><b>🏠</b>בית</a>
+    <a href="#"><b>📈</b>היסטוריה</a>
+    <a href="#"><b>📸</b>תמונות</a>
+    <a href="#"><b>⚙️</b>הגדרות</a>
+</nav>
+
+<script>
+    const GLASSES = 8;
+    let drunk = 3;
+    const waterEl = document.getElementById('water');
+    function drawWater() {
+        waterEl.innerHTML = '';
+        for (let i = 0; i < GLASSES; i++) {
+            const b = document.createElement('button');
+            b.className = 'glass' + (i < drunk ? ' on' : '');
+            b.onclick = () => { drunk = (i + 1 === drunk) ? i : i + 1; drawWater(); };
+            waterEl.appendChild(b);
+        }
+        document.getElementById('waterTxt').textContent = drunk + ' מתוך ' + GLASSES + ' כוסות';
+    }
+    function tog(btn) {
+        btn.classList.toggle('on');
+        btn.textContent = btn.classList.contains('on') ? '✓' : '';
+        const done = document.querySelectorAll('.check.on').length;
+        document.getElementById('doneCount').textContent = done + ' מתוך 5';
+        const pct = Math.round(done / 5 * 100);
+        document.getElementById('ringPct').textContent = pct + '%';
+        document.getElementById('ring').style.setProperty('--p', (pct * 3.6) + 'deg');
+    }
+    drawWater();
+</script>
+</body>
+</html>
