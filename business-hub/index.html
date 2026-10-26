@@ -165,11 +165,12 @@
             { id: 'tasks', label: '✅ משימות', render: renderTasks },
             { id: 'content', label: '📅 לוח תוכן', render: renderContent },
             { id: 'finance', label: '💰 כספים', render: renderFinance },
+            { id: 'affiliate', label: '🔗 שיווק קישורים', render: renderAffiliate },
             { id: 'products', label: '🛍️ מוצרים והזמנות', render: renderProducts },
             { id: 'assistants', label: '🤖 עוזרי AI', render: renderAssistants }
         ];
 
-        const EMPTY_DATA = { customers: [], tasks: [], content: [], transactions: [], products: [], orders: [] };
+        const EMPTY_DATA = { customers: [], tasks: [], content: [], transactions: [], products: [], orders: [], affiliates: [] };
         let state = loadData();
         let currentSection = 'dashboard';
 
@@ -495,6 +496,92 @@
             });
         }
 
+        // ---------- affiliate link marketing ----------
+        const DISCLOSURE = 'הפוסט מכיל קישורי שותפים, ואני עשוי להרוויח עמלה ממכירות שיבוצעו דרכם.';
+
+        function safeLink(url) {
+            return /^https?:\/\//i.test(url || '') ? esc(url) : '#';
+        }
+
+        function affiliateEarnings(a) {
+            return Number(a.sales || 0) * Number(a.price || 0) * Number(a.rate || 0) / 100;
+        }
+
+        function renderAffiliate() {
+            const total = state.affiliates.reduce((sum, a) => sum + affiliateEarnings(a), 0);
+            const totalClicks = state.affiliates.reduce((sum, a) => sum + Number(a.clicks || 0), 0);
+            const totalSales = state.affiliates.reduce((sum, a) => sum + Number(a.sales || 0), 0);
+
+            const rows = state.affiliates.map(a => {
+                const conversion = a.clicks ? (Number(a.sales || 0) / Number(a.clicks) * 100).toFixed(1) : '0.0';
+                return `
+                <tr>
+                    <td>${esc(a.name)}</td>
+                    <td><span class="tag">${esc(a.platform)}</span></td>
+                    <td>${money(a.price)}</td>
+                    <td>${esc(a.rate)}%</td>
+                    <td>${Number(a.clicks || 0)}</td>
+                    <td>${Number(a.sales || 0)}</td>
+                    <td>${conversion}%</td>
+                    <td class="pos">${money(affiliateEarnings(a))}</td>
+                    <td>
+                        <a href="${safeLink(a.link)}" target="_blank" rel="noopener">קישור</a><br>
+                        <button class="btn small" onclick="updateAffiliateStats('${a.id}')">עדכן נתונים</button>
+                        <button class="btn small danger" onclick="removeItem('affiliates','${a.id}')">מחק</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            return `
+                <h2>שיווק קישורים (אפיליאט)</h2>
+                <div class="grid" style="margin-bottom:16px">
+                    <div class="card stat"><div class="num pos">${money(total)}</div><div class="label">עמלות משוערות</div></div>
+                    <div class="card stat"><div class="num">${totalClicks}</div><div class="label">קליקים סה"כ</div></div>
+                    <div class="card stat"><div class="num">${totalSales}</div><div class="label">מכירות סה"כ</div></div>
+                </div>
+                <div class="card">
+                    <form onsubmit="event.preventDefault(); addItem('affiliates', formValues(this))">
+                        <input name="name" placeholder="שם המוצר" required>
+                        <select name="platform">
+                            <option>AliExpress</option>
+                            <option>Amazon</option>
+                            <option>Temu</option>
+                            <option>אחר</option>
+                        </select>
+                        <input name="link" type="url" placeholder="קישור שותפים" required>
+                        <input name="price" type="number" step="0.01" min="0" placeholder="מחיר המוצר" required>
+                        <input name="rate" type="number" step="0.1" min="0" max="100" placeholder="אחוז עמלה %" required>
+                        <input name="category" placeholder="קטגוריה">
+                        <button class="btn" type="submit">הוסף מוצר</button>
+                    </form>
+                    ${state.affiliates.length ? `<table>
+                        <tr><th>מוצר</th><th>פלטפורמה</th><th>מחיר</th><th>עמלה</th><th>קליקים</th><th>מכירות</th><th>המרה</th><th>עמלה משוערת</th><th></th></tr>${rows}</table>`
+                        : '<div class="empty">עוד אין מוצרים לשיווק. הוסיפו את הראשון!</div>'}
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:8px">כללים חשובים</h3>
+                    <p style="color:var(--muted);font-size:14px;line-height:1.7">
+                        • תמיד ציינו בפוסט שמדובר בקישור שותפים (גילוי נאות).<br>
+                        • עמלות משוערות בלבד. את המכירות והקליקים מעדכנים ידנית מתוך לוח הבקרה של התוכנית.<br>
+                        • בדקו את תנאי התוכנית (AliExpress, Amazon וכו') לגבי שימוש בקישורים ברשתות חברתיות.
+                    </p>
+                    <p style="margin-top:10px;font-size:14px"><strong>נוסח גילוי נאות:</strong> ${DISCLOSURE}</p>
+                </div>`;
+        }
+
+        function updateAffiliateStats(id) {
+            const a = state.affiliates.find(x => x.id === id);
+            if (!a) return;
+            const clicks = prompt('מספר קליקים עד היום:', a.clicks ?? 0);
+            if (clicks === null) return;
+            const sales = prompt('מספר מכירות עד היום:', a.sales ?? 0);
+            if (sales === null) return;
+            a.clicks = Math.max(0, Number(clicks) || 0);
+            a.sales = Math.max(0, Number(sales) || 0);
+            saveData();
+            render();
+        }
+
         // ---------- AI assistants (prompt templates) ----------
         const ASSISTANTS = [
             {
@@ -526,6 +613,12 @@
                 desc: 'מייל שיווקי או עדכון ללקוחות.',
                 fields: ['נושא המייל', 'מסר מרכזי'],
                 template: 'כתוב מייל בעברית ללקוחות העסק על "{נושא המייל}". המסר המרכזי: {מסר מרכזי}. כלול שורת נושא מושכת, פתיחה אישית וסיום עם קריאה לפעולה.'
+            },
+            {
+                title: '🔗 פוסט לקישור שותפים',
+                desc: 'פוסט שיווקי על מוצר מהאפיליאט, כולל גילוי נאות.',
+                fields: ['שם המוצר', 'פלטפורמה', 'יתרון מרכזי'],
+                template: 'כתוב פוסט שיווקי קצר ומשכנע בעברית על "{שם המוצר}" מ{פלטפורמה}. היתרון המרכזי: {יתרון מרכזי}. התחל את הפוסט במשפט הבא בדיוק: "' + DISCLOSURE + '" ואז סיים בקריאה לפעולה ברורה.'
             },
             {
                 title: '📝 סיכום שבועי',
