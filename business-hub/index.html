@@ -583,7 +583,7 @@
                         <input name="category" placeholder="קטגוריה">
                         <button class="btn" type="submit">הוסף מוצר</button>
                     </form>
-                    ${state.affiliates.length ? `<table>
+                    ${state.affiliates.length ? `<button class="btn small" onclick="exportAffiliateCsv()" style="margin-bottom:12px">ייצוא לטבלה (Excel / CSV)</button><table>
                         <tr><th>מוצר</th><th>פלטפורמה</th><th>מחיר</th><th>עמלה</th><th>קליקים</th><th>מכירות</th><th>המרה</th><th>עמלה משוערת</th><th></th></tr>${rows}</table>`
                         : '<div class="empty">עוד אין מוצרים לשיווק. הוסיפו את הראשון!</div>'}
                 </div>
@@ -596,6 +596,24 @@
                     </p>
                     <p style="margin-top:10px;font-size:14px"><strong>נוסח גילוי נאות:</strong> ${DISCLOSURE}</p>
                 </div>`;
+        }
+
+        // Exports the affiliate table as CSV (opens in Excel / Google Sheets). BOM keeps Hebrew readable.
+        function exportAffiliateCsv() {
+            const header = ['מוצר', 'פלטפורמה', 'מחיר', 'עמלה %', 'קליקים', 'מכירות', 'המרה %', 'עמלה משוערת', 'קישור', 'קטגוריה'];
+            const lines = state.affiliates.map(a => {
+                const conversion = a.clicks ? (Number(a.sales || 0) / Number(a.clicks) * 100).toFixed(1) : '0.0';
+                return [a.name, a.platform, a.price, a.rate, a.clicks || 0, a.sales || 0, conversion, affiliateEarnings(a).toFixed(2), a.link, a.category]
+                    .map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"')
+                    .join(',');
+            });
+            const csv = '﻿' + [header.join(','), ...lines].join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'affiliate-' + today() + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
         }
 
         function updateAffiliateStats(id) {
