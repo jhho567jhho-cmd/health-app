@@ -522,7 +522,7 @@
                     <button onclick="showSection('menu', 'more')">🍽️ תפריט וארוחות</button>
                     <button onclick="showSection('photos', 'more')">📸 תמונות</button>
                     <button onclick="showSection('weight', 'more')">⚖️ היסטוריית משקל</button>
-                    <button onclick="showSection('ai', 'more')">🤖 עוזר בריאות</button>
+                    <button onclick="showSection('ai', 'more')">🤖 עוזר פרויקטים</button>
                     <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
                     <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
                     <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
@@ -537,18 +537,18 @@
             <!-- AI Assistant Tab -->
             <div id="ai" class="tab-content">
                 <button class="back-btn" onclick="goBack()">→ חזרה</button>
-                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר בריאות</h2>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">🤖 עוזר פרויקטים</h2>
                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-right: 3px solid #667eea;">
                     <p style="color: #333; line-height: 1.5; font-size: 13px;">👋 שלום! בחר נושא או שאל שאלה:</p>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
-                    <button onclick="openAI('בריאות')">💪 בריאות</button>
-                    <button onclick="openAI('משקל')">⚖️ משקל</button>
-                    <button onclick="openAI('מתכונים')">🍽️ מתכונים</button>
-                    <button onclick="openAI('תרגילים')">🏃 תרגילים</button>
+                    <button onclick="openAI('סיכום')">📊 סיכום</button>
+                    <button onclick="openAI('רווח')">💰 רווח</button>
+                    <button onclick="openAI('הצעד הבא')">🧭 הצעד הבא</button>
+                    <button onclick="openAI('רעיון לחקור')">🔍 רעיון לחקור</button>
                 </div>
                 <label>או שאל שאלה משלך:</label>
-                <input type="text" id="aiQuestion" placeholder="שאל אותי משהו...">
+                <input type="text" id="aiQuestion" placeholder="שאל על הפרויקטים שלך...">
                 <button onclick="openAI(document.getElementById('aiQuestion').value)" style="margin-top: 10px;">🚀 שלח</button>
                 <div id="aiResponse"></div>
             </div>
@@ -864,12 +864,47 @@
             '🏆 עמוד בשבוע הראשון. אחרי 3 שבועות הגוף מתרגל, והתרגיל הופך לקל יותר.'
         ];
 
-        const AI_RESPONSES = {
-            'משקל': '⚖️ הורדת משקל בריאה\n\n✓ שתה 8 כוסות מים ביום\n✓ אכול ארוחות קטנות 5-6 פעמים\n✓ תאמן 30 דקות, 5 ימים בשבוע\n✓ נם 7-8 שעות בלילה\n✓ צמצם סוכר\n\n🎯 יעד: 0.5-1 ק״ג בשבוע',
-            'בריאות': '💪 תכנית בריאות\n\n1. פעילות: הליכה 30 דקות ביום\n2. תזונה: ירקות, פרות, חלבון\n3. שינה: 7-8 שעות בלילה\n4. מים: 8 כוסות ביום\n5. עקוב אחרי ההתקדמות!',
-            'מתכונים': '🍽️ מתכונים בריאים\n\n• סלט ירקות עם לימון\n• עוף בתנור עם ירקות\n• דגים צלויים עם אורז חום\n• ביצים עם שום\n• חומוס עם סלט\n• סלט טונה\n\n💡 הכן ארוחות בראשון!',
-            'תרגילים': '🏃 תכנית תרגילים\n\nיום א׳: הליכה 30 דקות\nיום ב׳: יוגה 20 דקות\nיום ג׳: כוח 25 דקות\nיום ד׳: בריכה/ריצה\nיום ה׳: כושר\nשישי-שבת: הרפיה'
+        const PROJECT_STAGE_NAMES = { research: '🔍 מחקר', testing: '🧪 ניסוי', active: '🟢 פעיל', closed: '⚪ סגור' };
+
+        const PROJECT_STAGE_STEPS = {
+            research: '🔍 מחקר: בדוק מוצרים דומים, רשום מחיר רכישה ומחיר מכירה, וכתוב את כל העלויות.',
+            testing: '🧪 ניסוי: הוסף תנועות אמיתיות, ואחרי כמה שבועות בדוק אם הרווח עקבי.',
+            active: '🟢 פעיל: עקוב אחרי ההכנסות וההוצאות כל שבוע, וזהה מה עובד הכי טוב.',
+            closed: '⚪ סגור: סכם את התוצאה הסופית ורשום מה למדתם.'
         };
+
+        // Answers come from the projects' own numbers and notes. No external AI is called.
+        function answerProjects(question) {
+            const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+            const q = question.toLowerCase();
+            const has = words => words.some(w => q.includes(w));
+            if (has(['מחקר', 'מוצר', 'רעיון', 'ebay', 'איביי'])) {
+                return '🔍 בדיקת רעיון למוצר:\n\n1. חפש ב-eBay "Sold items" כדי לראות מחירים שבאמת נמכרו\n2. רשום מחיר רכישה, עמלות ומשלוח\n3. בדוק כמה מוכרים מוכרים את אותו מוצר\n4. בחר רק מוצר שנשאר בו רווח אחרי כל העלויות';
+            }
+            if (has(['שותפ', 'עמלה', 'affiliate'])) {
+                return '🤝 תוכנית שותפים:\n\n✓ בדוק את העמלה ואיך ומתי משלמים\n✓ בדוק אם יש חובה לפרסם או יעד מינימלי\n✓ רשום כל עמלה שהתקבלה ביומן הפרויקט';
+            }
+            if (cloud.projects.length === 0) {
+                return '💼 עוד אין פרויקטים. פתח אחד במסך "💼 פרויקטים" ואז אוכל לענות לך עליו.';
+            }
+            const withTotals = cloud.projects.map(p => {
+                const entries = cloud.projectEntries.filter(e => e.projectId === p.id);
+                const income = entries.filter(e => e.kind === 'income').reduce((s, e) => s + e.amount, 0);
+                const expense = entries.filter(e => e.kind === 'expense').reduce((s, e) => s + e.amount, 0);
+                return { ...p, income, expense, profit: income - expense };
+            });
+            if (has(['רווח', 'הכנסה', 'הוצאה', 'כסף'])) {
+                const sorted = [...withTotals].sort((a, b) => b.profit - a.profit);
+                return '💰 רווח לפי פרויקט:\n\n' + sorted.map(p => `• ${p.name}: ${money(p.profit)}`).join('\n');
+            }
+            if (has(['צעד', 'הבא', 'לעשות', 'שלב'])) {
+                return '🧭 הצעדים הבאים:\n\n' + withTotals.map(p => `• ${p.name}\n${PROJECT_STAGE_STEPS[p.status]}`).join('\n\n');
+            }
+            const stageCounts = Object.entries(PROJECT_STAGE_NAMES).map(([key, label]) => `${label}: ${withTotals.filter(p => p.status === key).length}`).join(' · ');
+            const income = withTotals.reduce((s, p) => s + p.income, 0);
+            const expense = withTotals.reduce((s, p) => s + p.expense, 0);
+            return `📊 סיכום הפרויקטים:\n\n${stageCounts}\n\nהכנסות: ${money(income)}\nהוצאות: ${money(expense)}\nרווח: ${money(income - expense)}\n\nאפשר לשאול: רווח, הצעד הבא, רעיון לחקור, שותפים`;
+        }
 
         // Supabase. The anon key is public by design; Row Level Security limits each
         // signed-in user to their own couple's rows.
@@ -2524,17 +2559,7 @@
             }
             const responseDiv = document.getElementById('aiResponse');
             responseDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">⏳ חושב...</div>';
-            let response = null;
-            const questionLower = question.toLowerCase();
-            for (let [keyword, answer] of Object.entries(AI_RESPONSES)) {
-                if (questionLower.includes(keyword)) {
-                    response = answer;
-                    break;
-                }
-            }
-            if (!response) {
-                response = '👋 שלום! אני יכול לעזור עם:\n\n• משקל\n• בריאות\n• מתכונים\n• תרגילים\n\nנסה שוב!';
-            }
+            const response = answerProjects(question);
             setTimeout(() => {
                 window.aiText = response;
                 responseDiv.innerHTML = `<div style="background: #e8f5e9; border-right: 3px solid #4caf50; padding: 12px; border-radius: 5px; margin-top: 15px; white-space: pre-wrap; line-height: 1.6; color: #2e7d32; font-size: 13px;">${response}</div>
