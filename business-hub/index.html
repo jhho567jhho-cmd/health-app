@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מרכז ניהול העסק</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --danger: #ff6b6b;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #222;
+            --muted: #777;
+            --border: #e3e3e3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            direction: rtl;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        header h1 { font-size: 20px; }
+        .layout { display: flex; min-height: calc(100vh - 60px); }
+        nav {
+            width: 200px;
+            background: var(--card);
+            border-left: 1px solid var(--border);
+            padding: 10px 0;
+            flex-shrink: 0;
+        }
+        nav button {
+            display: block;
+            width: 100%;
+            text-align: right;
+            background: none;
+            border: none;
+            padding: 12px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        nav button.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        main { flex: 1; padding: 20px; min-width: 0; }
+        h2 { margin-bottom: 14px; font-size: 22px; }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .stat .num { font-size: 26px; font-weight: bold; color: var(--primary); }
+        .stat .label { color: var(--muted); font-size: 13px; margin-top: 4px; }
+        form { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        input, select, textarea {
+            padding: 9px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            flex: 1;
+            min-width: 120px;
+        }
+        textarea { min-height: 80px; width: 100%; flex-basis: 100%; }
+        button.btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button.btn:hover { background: var(--primary-dark); }
+        button.btn.danger { background: var(--danger); }
+        button.btn.small { padding: 4px 10px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
+        th { color: var(--muted); font-weight: 600; }
+        .empty { color: var(--muted); text-align: center; padding: 20px; }
+        .pos { color: #2e9e5b; font-weight: bold; }
+        .neg { color: var(--danger); font-weight: bold; }
+        .tag {
+            display: inline-block;
+            background: #eef0ff;
+            color: var(--primary-dark);
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 12px;
+        }
+        .done { text-decoration: line-through; color: var(--muted); }
+        .template-list { display: grid; gap: 12px; }
+        .template-list h3 { font-size: 16px; margin-bottom: 6px; }
+        .template-list p { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        @media (max-width: 640px) {
+            .layout { flex-direction: column; }
+            nav {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                padding: 0;
+                border-left: none;
+                border-bottom: 1px solid var(--border);
+            }
+            nav button { width: auto; white-space: nowrap; padding: 12px 14px; }
+            main { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📊 מרכז ניהול העסק</h1>
+        <div>
+            <button class="btn small" onclick="exportData()">ייצוא גיבוי</button>
+            <button class="btn small" onclick="document.getElementById('importFile').click()">ייבוא גיבוי</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+        </div>
+    </header>
+
+    <div class="layout">
+        <nav id="nav"></nav>
+        <main id="main"></main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const STORAGE_KEY = 'business-hub-v1';
+
+        const SECTIONS = [
+            { id: 'dashboard', label: '🏠 דשבורד', render: renderDashboard },
+            { id: 'customers', label: '👥 לקוחות', render: renderCustomers },
+            { id: 'tasks', label: '✅ משימות', render: renderTasks },
+            { id: 'content', label: '📅 לוח תוכן', render: renderContent },
+            { id: 'finance', label: '💰 כספים', render: renderFinance },
+            { id: 'products', label: '🛍️ מוצרים והזמנות', render: renderProducts },
+            { id: 'assistants', label: '🤖 עוזרי AI', render: renderAssistants }
+        ];
+
+        const EMPTY_DATA = { customers: [], tasks: [], content: [], transactions: [], products: [], orders: [] };
+        let state = loadData();
+        let currentSection = 'dashboard';
+
+        // ---------- storage ----------
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? { ...EMPTY_DATA, ...JSON.parse(raw) } : { ...EMPTY_DATA };
+            } catch (e) {
+                return { ...EMPTY_DATA };
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                showToast('שגיאה בשמירה - ייתכן שהאחסון מלא');
+            }
+        }
+
+        function uid() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        }
+
+        function today() {
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function money(n) {
+            return '₪' + Number(n || 0).toLocaleString('he-IL', { maximumFractionDigits: 2 });
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // ---------- navigation ----------
+        function renderNav() {
+            document.getElementById('nav').innerHTML = SECTIONS.map(s =>
+                `<button class="${s.id === currentSection ? 'active' : ''}" onclick="go('${s.id}')">${s.label}</button>`
+            ).join('');
+        }
+
+        function go(id) {
+            currentSection = id;
+            render();
+        }
+
+        function render() {
+            renderNav();
+            const section = SECTIONS.find(s => s.id === currentSection);
+            document.getElementById('main').innerHTML = section.render();
+        }
+
+        // ---------- generic CRUD helpers ----------
+        function addItem(collection, item) {
+            state[collection].push({ id: uid(), createdAt: today(), ...item });
+            saveData();
+            render();
+        }
+
+        function removeItem(collection, id) {
+            if (!confirm('למחוק את הפריט?')) return;
+            state[collection] = state[collection].filter(x => x.id !== id);
+            saveData();
+            render();
+        }
+
+        function formValues(form) {
+            const data = {};
+            new FormData(form).forEach((v, k) => data[k] = String(v).trim());
+            return data;
+        }
+
+        // ---------- dashboard ----------
+        function renderDashboard() {
+            const income = state.transactions.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
+            const expense = state.transactions.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
+            const openTasks = state.tasks.filter(t => !t.done).length;
+            const todayContent = state.content.filter(c => c.date === today()).length;
+            const revenue = state.orders.reduce((a, o) => a + Number(o.total), 0);
+
+            const upcomingTasks = state.tasks
+                .filter(t => !t.done)
+                .sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'))
+                .slice(0, 5);
+
+            return `
+                <h2>דשבורד</h2>
+                <div class="grid" style="margin-bottom:16px">
+                    <div class="card stat"><div class="num">${state.customers.length}</div><div class="label">לקוחות</div></div>
+                    <div class="card stat"><div class="num">${openTasks}</div><div class="label">משימות פתוחות</div></div>
+                    <div class="card stat"><div class="num">${todayContent}</div><div class="label">פוסטים להיום</div></div>
+                    <div class="card stat"><div class="num ${income - expense >= 0 ? 'pos' : 'neg'}">${money(income - expense)}</div><div class="label">רווח נקי (כספים)</div></div>
+                    <div class="card stat"><div class="num">${money(revenue)}</div><div class="label">סך הזמנות</div></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:10px">המשימות הבאות</h3>
+                    ${upcomingTasks.length ? `<table>${upcomingTasks.map(t =>
+                        `<tr><td>${esc(t.title)}</td><td>${esc(t.due || 'ללא תאריך')}</td></tr>`).join('')}</table>`
+                        : '<div class="empty">אין משימות פתוחות 🎉</div>'}
+                </div>
+            `;
+        }
+
+        // ---------- customers ----------
+        function renderCustomers() {
+            const rows = state.customers.map(c => `
+                <tr>
+                    <td>${esc(c.name)}</td>
+                    <td>${esc(c.phone)}<br>${esc(c.email)}</td>
+                    <td><span class="tag">${esc(c.status)}</span></td>
+                    <td>${esc(c.notes)}</td>
+                    <td><button class="btn small danger" onclick="removeItem('customers','${c.id}')">מחק</button></td>
+                </tr>`).join('');
+            return `
+                <h2>לקוחות ולידים</h2>
+                <div class="card">
+                    <form onsubmit="event.preventDefault(); submitCustomer(this)">
+                        <input name="name" placeholder="שם" required>
+                        <input name="phone" placeholder="טלפון">
+                        <input name="email" placeholder="אימייל" type="email">
+                        <select name="status">
+                            <option value="ליד">ליד</option>
+                            <option value="לקוח פעיל">לקוח פעיל</option>
+                            <option value="לקוח חוזר">לקוח חוזר</option>
+                        </select>
+                        <input name="notes" placeholder="הערות">
+                        <button class="btn" type="submit">הוסף</button>
+                    </form>
+                    ${state.customers.length ? `<table>
+                        <tr><th>שם</th><th>קשר</th><th>סטטוס</th><th>הערות</th><th></th></tr>${rows}</table>`
+                        : '<div class="empty">עוד אין לקוחות. הוסיפו את הראשון!</div>'}
+                </div>`;
+        }
+
+        function submitCustomer(form) {
+            const v = formValues(form);
+            addItem('customers', v);
+        }
+
+        // ---------- tasks ----------
+        function renderTasks() {
+            const rows = state.tasks.map(t => `
+                <tr>
+                    <td><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask('${t.id}')"></td>
+                    <td class="${t.done ? 'done' : ''}">${esc(t.title)}</td>
+                    <td>${esc(t.due)}</td>
+                    <td><button class="btn small danger" onclick="removeItem('tasks','${t.id}')">מחק</button></td>
+                </tr>`).join('');
+            return `
+                <h2>משימות</h2>
+                <div class="card">
+                    <form onsubmit="event.preventDefault(); addItem('tasks', formValues(this))">
+                        <input name="title" placeholder="מה צריך לעשות?" required>
+                        <input name="due" type="date" value="${today()}">
+                        <button class="btn" type="submit">הוסף</button>
+                    </form>
+                    ${state.tasks.length ? `<table>
+                        <tr><th></th><th>משימה</th><th>תאריך יעד</th><th></th></tr>${rows}</table>`
+                        : '<div class="empty">אין משימות עדיין.</div>'}
+                </div>`;
+        }
+
+        function toggleTask(id) {
+            const t = state.tasks.find(x => x.id === id);
+            if (t) t.done = !t.done;
+            saveData();
+            render();
+        }
+
+        // ---------- content calendar ----------
+        function renderContent() {
+            const sorted = [...state.content].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+            const rows = sorted.map(c => `
+                <tr>
+                    <td>${esc(c.date)}</td>
+                    <td><span class="tag">${esc(c.platform)}</span></td>
+                    <td>${esc(c.idea)}</td>
+                    <td><span class="tag">${esc(c.status)}</span></td>
+                    <td><button class="btn small danger" onclick="removeItem('content','${c.id}')">מחק</button></td>
+                </tr>`).join('');
+            return `
+                <h2>לוח תוכן</h2>
+                <div class="card">
+                    <form onsubmit="event.preventDefault(); addItem('content', formValues(this))">
+                        <input name="date" type="date" value="${today()}" required>
+                        <select name="platform">
+                            <option>אינסטגרם</option>
+                            <option>פייסבוק</option>
+                            <option>טיקטוק</option>
+                            <option>יוטיוב</option>
+                            <option>אימייל / ניוזלטר</option>
+                            <option>בלוג</option>
+                        </select>
+                        <input name="idea" placeholder="רעיון / נושא" required>
+                        <select name="status">
+                            <option>רעיון</option>
+                            <option>בכתיבה</option>
+                            <option>מתוזמן</option>
+                            <option>פורסם</option>
+                        </select>
+                        <button class="btn" type="submit">הוסף</button>
+                    </form>
+                    ${sorted.length ? `<table>
+                        <tr><th>תאריך</th><th>פלטפורמה</th><th>תוכן</th><th>סטטוס</th><th></th></tr>${rows}</table>`
+                        : '<div class="empty">עוד אין תוכן מתוכנן.</div>'}
+                </div>`;
+        }
+
+        // ---------- finance ----------
+        function renderFinance() {
+            const income = state.transactions.filter(t => t.type === 'income').reduce((a, t) => a + Number(t.amount), 0);
+            const expense = state.transactions.filter(t => t.type === 'expense').reduce((a, t) => a + Number(t.amount), 0);
+            const sorted = [...state.transactions].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            const rows = sorted.map(t => `
+                <tr>
+                    <td>${esc(t.date)}</td>
+                    <td><span class="tag">${t.type === 'income' ? 'הכנסה' : 'הוצאה'}</span></td>
+                    <td>${esc(t.category)}</td>
+                    <td>${esc(t.description)}</td>
+                    <td class="${t.type === 'income' ? 'pos' : 'neg'}">${money(t.amount)}</td>
+                    <td><button class="btn small danger" onclick="removeItem('transactions','${t.id}')">מחק</button></td>
+                </tr>`).join('');
+            return `
+                <h2>כספים</h2>
+                <div class="grid" style="margin-bottom:16px">
+                    <div class="card stat"><div class="num pos">${money(income)}</div><div class="label">הכנסות</div></div>
+                    <div class="card stat"><div class="num neg">${money(expense)}</div><div class="label">הוצאות</div></div>
+                    <div class="card stat"><div class="num ${income - expense >= 0 ? 'pos' : 'neg'}">${money(income - expense)}</div><div class="label">רווח נקי</div></div>
+                </div>
+                <div class="card">
+                    <form onsubmit="event.preventDefault(); addItem('transactions', formValues(this))">
+                        <select name="type">
+                            <option value="income">הכנסה</option>
+                            <option value="expense">הוצאה</option>
+                        </select>
+                        <input name="date" type="date" value="${today()}" required>
+                        <input name="category" placeholder="קטגוריה (שיווק, תוכנה, מכירות...)">
+                        <input name="description" placeholder="תיאור">
+                        <input name="amount" type="number" step="0.01" min="0" placeholder="סכום" required>
+                        <button class="btn" type="submit">הוסף</button>
+                    </form>
+                    ${sorted.length ? `<table>
+                        <tr><th>תאריך</th><th>סוג</th><th>קטגוריה</th><th>תיאור</th><th>סכום</th><th></th></tr>${rows}</table>`
+                        : '<div class="empty">עוד אין תנועות כספיות.</div>'}
+                </div>`;
+        }
+
+        // ---------- products & orders ----------
+        function renderProducts() {
+            const productRows = state.products.map(p => `
+                <tr>
+                    <td>${esc(p.name)}</td>
+                    <td>${money(p.price)}</td>
+                    <td>${esc(p.type)}</td>
+                    <td><button class="btn small danger" onclick="removeItem('products','${p.id}')">מחק</button></td>
+                </tr>`).join('');
+            const orderRows = state.orders.map(o => {
+                const product = state.products.find(p => p.id === o.productId);
+                return `
+                <tr>
+                    <td>${esc(o.date)}</td>
+                    <td>${esc(o.customer)}</td>
+                    <td>${esc(product ? product.name : 'מוצר שנמחק')}</td>
+                    <td>${money(o.total)}</td>
+                    <td><button class="btn small danger" onclick="removeItem('orders','${o.id}')">מחק</button></td>
+                </tr>`;
+            }).join('');
+            const options = state.products.map(p => `<option value="${p.id}">${esc(p.name)} (${money(p.price)})</option>`).join('');
+
+            return `
+                <h2>מוצרים והזמנות</h2>
+                <div class="card">
+                    <h3 style="margin-bottom:10px">מוצרים / שירותים</h3>
+                    <form onsubmit="event.preventDefault(); addItem('products', formValues(this))">
+                        <input name="name" placeholder="שם המוצר" required>
+                        <input name="price" type="number" step="0.01" min="0" placeholder="מחיר" required>
+                        <select name="type">
+                            <option>מוצר דיגיטלי</option>
+                            <option>קורס</option>
+                            <option>שירות / ייעוץ</option>
+                            <option>מנוי</option>
+                        </select>
+                        <button class="btn" type="submit">הוסף</button>
+                    </form>
+                    ${state.products.length ? `<table>
+                        <tr><th>שם</th><th>מחיר</th><th>סוג</th><th></th></tr>${productRows}</table>`
+                        : '<div class="empty">עוד אין מוצרים.</div>'}
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:10px">הזמנות</h3>
+                    ${state.products.length ? `
+                    <form onsubmit="event.preventDefault(); submitOrder(this)">
+                        <input name="date" type="date" value="${today()}" required>
+                        <input name="customer" placeholder="שם הלקוח" required>
+                        <select name="productId">${options}</select>
+                        <button class="btn" type="submit">הוסף הזמנה</button>
+                    </form>` : '<div class="empty" style="padding:6px">הוסיפו קודם מוצר כדי לרשום הזמנה.</div>'}
+                    ${state.orders.length ? `<table>
+                        <tr><th>תאריך</th><th>לקוח</th><th>מוצר</th><th>סכום</th><th></th></tr>${orderRows}</table>`
+                        : ''}
+                </div>`;
+        }
+
+        function submitOrder(form) {
+            const v = formValues(form);
+            const product = state.products.find(p => p.id === v.productId);
+            addItem('orders', {
+                date: v.date,
+                customer: v.customer,
+                productId: v.productId,
+                total: product ? Number(product.price) : 0
+            });
+        }
+
+        // ---------- AI assistants (prompt templates) ----------
+        const ASSISTANTS = [
+            {
+                title: '✍️ כתיבת פוסט לרשת חברתית',
+                desc: 'פוסט קצר ומזמין על מוצר או נושא.',
+                fields: ['נושא', 'פלטפורמה', 'מטרה'],
+                template: 'כתוב פוסט ל{פלטפורמה} בעברית על "{נושא}". מטרת הפוסט: {מטרה}. הפוסט צריך להיות קצר, חם, עם קריאה לפעולה ברורה ו-3 האשטגים רלוונטיים.'
+            },
+            {
+                title: '💬 תשובה ללקוח',
+                desc: 'מענה מנומס ומקצועי לשאלה או תלונה.',
+                fields: ['שאלת הלקוח', 'טון (ידידותי / רשמי)'],
+                template: 'כתוב תשובה מקצועית ו{טון} בעברית ללקוח ששאל: "{שאלת הלקוח}". הציע פתרון ברור וסיים בהצעה לעזרה נוספת.'
+            },
+            {
+                title: '🏷️ תיאור מוצר',
+                desc: 'תיאור שיווקי לדף מוצר או לקורס.',
+                fields: ['שם המוצר', 'למי זה מיועד', 'יתרונות עיקריים'],
+                template: 'כתוב תיאור מוצר שיווקי בעברית עבור "{שם המוצר}". קהל היעד: {למי זה מיועד}. היתרונות המרכזיים: {יתרונות עיקריים}. כלול כותרת, 3 נקודות בולט וקריאה לפעולה.'
+            },
+            {
+                title: '💡 רעיונות לתוכן',
+                desc: '10 רעיונות לפוסטים, סרטונים או מאמרים.',
+                fields: ['תחום העסק', 'פלטפורמה'],
+                template: 'תן 10 רעיונות לתוכן ב{פלטפורמה} לעסק בתחום {תחום העסק}. לכל רעיון: כותרת קצרה ותיאור של משפט אחד.'
+            },
+            {
+                title: '📧 מייל / ניוזלטר',
+                desc: 'מייל שיווקי או עדכון ללקוחות.',
+                fields: ['נושא המייל', 'מסר מרכזי'],
+                template: 'כתוב מייל בעברית ללקוחות העסק על "{נושא המייל}". המסר המרכזי: {מסר מרכזי}. כלול שורת נושא מושכת, פתיחה אישית וסיום עם קריאה לפעולה.'
+            },
+            {
+                title: '📝 סיכום שבועי',
+                desc: 'סיכום התקדמות שבועי לעצמכם או לשותפה.',
+                fields: ['מה נעשה השבוע', 'מה מתוכנן לשבוע הבא'],
+                template: 'כתוב סיכום שבועי קצר בעברית. מה נעשה השבוע: {מה נעשה השבוע}. מה מתוכנן לשבוע הבא: {מה מתוכנן לשבוע הבא}. הוסף 3 המלצות לשיפור.'
+            }
+        ];
+
+        function renderAssistants() {
+            return `
+                <h2>עוזרי AI</h2>
+                <div class="card">
+                    <p style="color:var(--muted);margin-bottom:12px">
+                        בחרו עוזר, מלאו את השדות והעתיקו את ההנחיה ל-ChatGPT / Claude / כל כלי AI אחר.
+                    </p>
+                    <div class="template-list">
+                        ${ASSISTANTS.map((a, i) => `
+                            <div class="card" style="margin:0">
+                                <h3>${a.title}</h3>
+                                <p>${a.desc}</p>
+                                <form onsubmit="event.preventDefault(); buildPrompt(${i}, this)">
+                                    ${a.fields.map(f => `<input name="${esc(f)}" placeholder="${esc(f)}" required>`).join('')}
+                                    <button class="btn" type="submit">צור הנחיה והעתק</button>
+                                </form>
+                            </div>`).join('')}
+                    </div>
+                </div>`;
+        }
+
+        function buildPrompt(index, form) {
+            const assistant = ASSISTANTS[index];
+            const values = formValues(form);
+            let prompt = assistant.template;
+            Object.entries(values).forEach(([k, v]) => {
+                prompt = prompt.split('{' + k + '}').join(v);
+            });
+            copyText(prompt);
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('ההנחיה הועתקה ✔'))
+                    .catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('ההנחיה הועתקה ✔');
+            } catch (e) {
+                showToast('לא ניתן להעתיק אוטומטית');
+            }
+            ta.remove();
+        }
+
+        // ---------- backup ----------
+        function exportData() {
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'business-hub-backup-' + today() + '.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const data = JSON.parse(reader.result);
+                    if (!confirm('ייבוא יחליף את כל הנתונים הקיימים. להמשיך?')) return;
+                    state = { ...EMPTY_DATA, ...data };
+                    saveData();
+                    render();
+                    showToast('הגיבוי יובא בהצלחה');
+                } catch (e) {
+                    showToast('קובץ הגיבוי אינו תקין');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        render();
+    </script>
+</body>
+</html>
