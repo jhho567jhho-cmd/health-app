@@ -344,10 +344,33 @@
                         <input name="due" type="date" value="${today()}">
                         <button class="btn" type="submit">הוסף</button>
                     </form>
+                    <button class="btn small" onclick="addPlanWeekOne()" style="margin-bottom:12px">הוסף משימות שבוע 1 מהתוכנית</button>
                     ${state.tasks.length ? `<table>
                         <tr><th></th><th>משימה</th><th>תאריך יעד</th><th></th></tr>${rows}</table>`
                         : '<div class="empty">אין משימות עדיין.</div>'}
                 </div>`;
+        }
+
+        // Week 1 items from business-hub/PLAN.md. Skips any title that already exists.
+        const PLAN_WEEK_ONE = [
+            'להירשם לתוכניות השותפים ולבדוק את התנאים לשימוש ברשתות',
+            'ליצור חשבון בערוץ העיקרי ולהגדיר שם, תמונה ותיאור',
+            'לתכנן 14 רעיונות לפוסטים',
+            'להוסיף משימות שבועיות חוזרות: פרסום, בדיקת ביצועים, מציאת מוצרים'
+        ];
+
+        function addPlanWeekOne() {
+            const existing = new Set(state.tasks.map(t => t.title));
+            const due = today();
+            let added = 0;
+            PLAN_WEEK_ONE.forEach(title => {
+                if (existing.has(title)) return;
+                state.tasks.push({ id: uid(), createdAt: due, title, due, done: false });
+                added++;
+            });
+            saveData();
+            render();
+            showToast(added ? `נוספו ${added} משימות` : 'משימות השבוע כבר קיימות');
         }
 
         function toggleTask(id) {
