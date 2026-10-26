@@ -6,6 +6,7 @@
 
 ## Scope
 - The app tracks **general health and fitness** and runs the household day: water, meals and calories, weight, photos, tasks with due dates and owner, a calendar of tasks, and a shared shopping list.
+- **Projects (side businesses and research)** are in scope: each project has a stage (research, testing, active, closed), income and expense entries, and a profit total. Both partners see them. Connecting to external accounts (eBay, affiliate programs) is out of scope for now; entries are entered by hand.
 - **Not in scope:** fertility or cycle tracking. Do not add it, and do not use the word "פוריות" for this app.
 
 ## Product Principles

@@ -526,6 +526,7 @@
                     <button onclick="showSection('tips', 'more')">🏋️ טיפים לספורט</button>
                     <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
                     <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
+                    <button onclick="showSection('projects', 'more')">💼 פרויקטים</button>
                     <button onclick="showSection('plan', 'more')">🗓️ תפריט שבועי</button>
                     <button onclick="showSection('receipts', 'more')">🧾 קבלות</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
@@ -632,6 +633,27 @@
                 <button onclick="addFuel()">⛽ רשום תדלוק</button>
                 <div id="fuelSummary"></div>
                 <div id="fuelList"></div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div id="projects" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">💼 פרויקטים</h2>
+                <div class="input-group">
+                    <label>שם הפרויקט:</label>
+                    <input type="text" id="projectName" placeholder="למשל: חנות eBay">
+                </div>
+                <div class="input-group">
+                    <label>שלב:</label>
+                    <select id="projectStatus">
+                        <option value="research">🔍 מחקר</option>
+                        <option value="testing">🧪 ניסוי</option>
+                        <option value="active">🟢 פעיל</option>
+                        <option value="closed">⚪ סגור</option>
+                    </select>
+                </div>
+                <button onclick="addProject()">💼 פתח פרויקט</button>
+                <div id="projectList" style="margin-top: 15px;"></div>
             </div>
 
             <!-- Weekly Plan Tab -->
@@ -861,7 +883,7 @@
         let realtime = null;
 
         // Shared data, loaded from Supabase. Photos and tips stay on this device.
-        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], mealPlan: [], receipts: [], weights: [], menu: [], water: {} };
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], projects: [], projectEntries: [], mealPlan: [], receipts: [], weights: [], menu: [], water: {} };
 
         const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
 
@@ -889,6 +911,10 @@
             user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
             workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
             fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: Number(r.amount), filledOn: r.filled_on, userId: r.user_id })],
+            projects: ['projects', 'created_at', r => ({ id: r.id, name: r.name, status: r.status, note: r.note || '', userId: r.user_id })],
+            project_entries: ['projectEntries', 'entry_date', r => ({
+                id: r.id, projectId: r.project_id, kind: r.kind, amount: Number(r.amount), entryDate: r.entry_date, note: r.note || '', userId: r.user_id
+            })],
             meal_plan: ['mealPlan', 'plan_date', r => ({ date: r.plan_date, slot: r.slot, meal: r.meal })],
             receipts: ['receipts', 'receipt_date', r => ({ id: r.id, amount: r.amount === null ? null : Number(r.amount), date: r.receipt_date, note: r.note || '', path: r.file_path, userId: r.user_id })],
             weight_entries: ['weights', 'measured_at', r => ({
@@ -923,6 +949,7 @@
             document.getElementById('eyeBtn').textContent = hidePrivate() ? '🙈' : '👁️';
             renderWorkouts();
             renderFuel();
+            renderProjects();
             renderPlan();
             renderReceipts();
             displayTasks();
@@ -1301,6 +1328,93 @@
                     ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}')">✕</button>` : ''}
                   </div>`).join('')
                 : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
+        }
+
+        const PROJECT_STATUSES = [['research', '🔍 מחקר'], ['testing', '🧪 ניסוי'], ['active', '🟢 פעיל'], ['closed', '⚪ סגור']];
+
+        function addProject() {
+            const name = document.getElementById('projectName').value.trim();
+            if (!name) {
+                showError('⚠️ כתוב שם לפרויקט');
+                return;
+            }
+            document.getElementById('projectName').value = '';
+            cloudWrite(sb.from('projects').insert({ couple_id: coupleId, user_id: userId, name: name, status: document.getElementById('projectStatus').value }), 'projects');
+        }
+
+        function setProjectStatus(id, status) {
+            cloudWrite(sb.from('projects').update({ status: status }).eq('id', id), 'projects');
+        }
+
+        function removeProject(id) {
+            if (!confirm('למחוק את הפרויקט וכל ההכנסות וההוצאות שלו?')) return;
+            cloudWrite(sb.from('projects').delete().eq('id', id), 'projects').then(() => loadTable('project_entries')).then(refreshViews);
+        }
+
+        function addProjectEntry(projectId) {
+            const amountInput = document.getElementById(`pe-amount-${projectId}`);
+            const amount = parseFloat(amountInput.value);
+            if (!amount || amount <= 0) {
+                showError('⚠️ כתוב סכום');
+                return;
+            }
+            const kind = document.getElementById(`pe-kind-${projectId}`).value;
+            const day = document.getElementById(`pe-date-${projectId}`).value || isoDay(new Date());
+            const noteInput = document.getElementById(`pe-note-${projectId}`);
+            const note = noteInput.value.trim();
+            amountInput.value = '';
+            noteInput.value = '';
+            cloudWrite(sb.from('project_entries').insert({ couple_id: coupleId, user_id: userId, project_id: projectId, kind: kind, amount: amount, entry_date: day, note: note }), 'project_entries');
+        }
+
+        function removeProjectEntry(id) {
+            if (!confirm('למחוק את השורה הזו?')) return;
+            cloudWrite(sb.from('project_entries').delete().eq('id', id), 'project_entries');
+        }
+
+        function renderProjects() {
+            const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            const list = document.getElementById('projectList');
+            if (!list) return;
+            if (cloud.projects.length === 0) {
+                list.innerHTML = '<div class="empty-state">עוד לא נפתח פרויקט</div>';
+                return;
+            }
+            list.innerHTML = cloud.projects.map(p => {
+                const entries = cloud.projectEntries.filter(e => e.projectId === p.id).sort((a, b) => b.entryDate.localeCompare(a.entryDate));
+                const sumOf = kind => entries.filter(e => e.kind === kind).reduce((s, e) => s + e.amount, 0);
+                const income = sumOf('income');
+                const expense = sumOf('expense');
+                const profit = income - expense;
+                const isMine = p.userId === userId;
+                return `<div class="activity-person" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <b>${p.name}</b>
+                        ${isMine ? `<button class="chip-del" onclick="removeProject('${p.id}')">✕</button>` : ''}
+                    </div>
+                    <select onchange="setProjectStatus('${p.id}', this.value)" style="margin: 8px 0;">
+                        ${PROJECT_STATUSES.map(([key, label]) => `<option value="${key}" ${p.status === key ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                    <div>הכנסות: ${money(income)} · הוצאות: ${money(expense)} · <b>רווח: ${money(profit)}</b></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                        <select id="pe-kind-${p.id}">
+                            <option value="income">הכנסה</option>
+                            <option value="expense">הוצאה</option>
+                        </select>
+                        <input type="number" id="pe-amount-${p.id}" placeholder="₪" min="1" step="1" inputmode="decimal">
+                        <input type="date" id="pe-date-${p.id}" value="${isoDay(new Date())}">
+                        <input type="text" id="pe-note-${p.id}" placeholder="הערה">
+                    </div>
+                    <button onclick="addProjectEntry('${p.id}')" style="margin-top: 8px;">➕ רשום</button>
+                    <div style="margin-top: 10px;">${entries.length
+                        ? entries.map(e => `<div class="activity-row">
+                            <span>${e.entryDate} · ${personName(e.userId)} · ${e.kind === 'income' ? '➕' : '➖'} ${money(e.amount)}${e.note ? ' · ' + e.note : ''}</span>
+                            ${e.userId === userId ? `<button class="chip-del" onclick="removeProjectEntry('${e.id}')">✕</button>` : ''}
+                          </div>`).join('')
+                        : '<div class="empty-state">עוד אין תנועות</div>'}</div>
+                </div>`;
+            }).join('');
         }
 
         let planWeekStart = null;
