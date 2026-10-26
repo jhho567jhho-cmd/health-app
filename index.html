@@ -623,14 +623,16 @@
                 <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 15px;">⛽ דלק</h2>
                 <div class="input-group">
-                    <label>כמה שילמת (₪):</label>
+                    <label>כמה שילמת (₪) - אפשר להשאיר ריק אם מעלים תמונה:</label>
                     <input type="number" id="fuelAmount" placeholder="0" min="1" step="1" inputmode="decimal">
                 </div>
                 <div class="input-group">
                     <label>תאריך:</label>
                     <input type="date" id="fuelDate">
                 </div>
-                <button onclick="addFuel()">⛽ רשום תדלוק</button>
+                <input type="file" id="fuelFile" accept="image/*" style="display: none" onchange="addFuelPhoto(this)">
+                <button onclick="document.getElementById('fuelFile').click()">📷 צלם או בחר תמונה של מסך התחנה</button>
+                <button onclick="addFuel()" style="margin-top: 8px;">⛽ רשום תדלוק בלי תמונה</button>
                 <div id="fuelSummary"></div>
                 <div id="fuelList"></div>
             </div>
@@ -945,7 +947,7 @@
             shopping_catalog: ['catalog', 'created_at', r => ({ id: r.id, name: r.name, category: r.category })],
             user_settings: ['settings', 'user_id', r => ({ hidePrivate: r.hide_private })],
             workout_logs: ['workoutLogs', 'done_on', r => ({ id: r.id, exercise: r.exercise, doneOn: r.done_on, userId: r.user_id })],
-            fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: Number(r.amount), filledOn: r.filled_on, userId: r.user_id })],
+            fuel_logs: ['fuelLogs', 'filled_on', r => ({ id: r.id, amount: r.amount === null ? null : Number(r.amount), filledOn: r.filled_on, photoPath: r.photo_path || '', userId: r.user_id })],
             projects: ['projects', 'created_at', r => ({ id: r.id, name: r.name, status: r.status, note: r.note || '', userId: r.user_id })],
             project_entries: ['projectEntries', 'entry_date', r => ({
                 id: r.id, projectId: r.project_id, kind: r.kind, amount: Number(r.amount), entryDate: r.entry_date, note: r.note || '', userId: r.user_id
@@ -1339,8 +1341,33 @@
             cloudWrite(sb.from('fuel_logs').insert({ couple_id: coupleId, user_id: userId, amount: amount, filled_on: day }), 'fuel_logs');
         }
 
-        function removeFuel(id) {
+        async function addFuelPhoto(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            const amountRaw = document.getElementById('fuelAmount').value;
+            const amount = amountRaw === '' ? null : parseFloat(amountRaw);
+            if (amount !== null && (isNaN(amount) || amount <= 0)) {
+                showError('⚠️ הסכום לא תקין');
+                return;
+            }
+            const day = document.getElementById('fuelDate').value || isoDay(new Date());
+            try {
+                const blob = await shrinkImage(file);
+                const path = `${coupleId}/fuel-${crypto.randomUUID()}.jpg`;
+                const { error: uploadError } = await sb.storage.from('receipts').upload(path, blob, { contentType: 'image/jpeg' });
+                if (uploadError) throw uploadError;
+                document.getElementById('fuelAmount').value = '';
+                await cloudWrite(sb.from('fuel_logs').insert({ couple_id: coupleId, user_id: userId, amount: amount, filled_on: day, photo_path: path }), 'fuel_logs');
+            } catch (e) {
+                console.error(e);
+                showError('❌ התדלוק לא נשמר, נסה שוב');
+            }
+        }
+
+        async function removeFuel(id, path) {
             if (!confirm('למחוק את התדלוק הזה?')) return;
+            if (path) await sb.storage.from('receipts').remove([path]);
             cloudWrite(sb.from('fuel_logs').delete().eq('id', id), 'fuel_logs');
         }
 
@@ -1350,7 +1377,7 @@
             const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
             const now = new Date();
             const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const sum = list => list.reduce((s, f) => s + f.amount, 0);
+            const sum = list => list.reduce((s, f) => s + (f.amount || 0), 0);
             const logs = [...cloud.fuelLogs].sort((a, b) => b.filledOn.localeCompare(a.filledOn));
             const monthLogs = logs.filter(f => f.filledOn.startsWith(monthPrefix));
             const money = n => `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
@@ -1359,8 +1386,11 @@
                 <div class="activity-person"><b>סך הכול</b><div>${money(sum(logs))} · ${logs.length} תדלוקים</div></div>`;
             document.getElementById('fuelList').innerHTML = logs.length
                 ? logs.map(f => `<div class="activity-row">
-                    <span>${f.filledOn} · ${personName(f.userId)} · ${money(f.amount)}</span>
-                    ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}')">✕</button>` : ''}
+                    <span>${f.filledOn} · ${personName(f.userId)} · ${f.amount === null ? 'בלי סכום' : money(f.amount)}</span>
+                    <span>
+                        ${f.photoPath ? `<button class="chip-del" onclick="openReceipt('${f.photoPath}')">📄</button>` : ''}
+                        ${f.userId === userId ? `<button class="chip-del" onclick="removeFuel('${f.id}', '${f.photoPath}')">✕</button>` : ''}
+                    </span>
                   </div>`).join('')
                 : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
         }
