@@ -1761,7 +1761,7 @@
                 <div class="home-row ${t.completed ? 'done' : ''} ${overdue ? 'overdue' : ''}">
                     <button class="check ${t.completed ? 'on' : ''}" onclick="toggleTask(${t.i})">${t.completed ? '✓' : ''}</button>
                     <div class="row-main" onclick="openTaskSheet(${t.i})"><span>${t.name}${badge}</span>${meta ? `<small>${meta}</small>` : ''}</div>
-                    ${showDelete ? `<button class="icon-btn" onclick="deleteTask(${t.i})">🗑️</button>` : ''}
+                    ${showDelete ? `<button class="icon-btn" onclick="deleteTask('${t.id}')">🗑️</button>` : ''}
                 </div>
             `;
         }
@@ -1942,15 +1942,15 @@
             document.getElementById('calGrid').innerHTML = cells;
 
             document.getElementById('calDayTitle').textContent = formatDay(calSelected, true);
-            const dayTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => t.due === calSelected).sort(byTime);
+            const dayTasks = data.tasks.map(t => ({ ...t, i: cloud.tasks.indexOf(t) })).filter(t => t.due === calSelected).sort(byTime);
             document.getElementById('calDayList').innerHTML = dayTasks.length
                 ? dayTasks.map(t => taskRow(t, true)).join('')
                 : '<div class="empty-state">אין משימות ביום הזה</div>';
 
-            const upcoming = data.tasks.map((t, i) => ({ ...t, i })).filter(t => !t.completed && t.due && t.due >= today)
+            const upcoming = data.tasks.map(t => ({ ...t, i: cloud.tasks.indexOf(t) })).filter(t => !t.completed && t.due && t.due >= today)
                 .sort((a, b) => a.due.localeCompare(b.due) || byTime(a, b));
             document.getElementById('calUpcoming').innerHTML = upcoming.length
-                ? upcoming.map(t => taskRow(t, false)).join('')
+                ? upcoming.map(t => taskRow(t, true)).join('')
                 : '<div class="empty-state">אין משימות קרובות</div>';
         }
 
@@ -2150,7 +2150,7 @@
             document.getElementById('homeDate').textContent = new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
 
             const isoToday = isoDay(new Date());
-            const todays = data.tasks.map((t, i) => ({ ...t, i })).filter(t =>
+            const todays = data.tasks.map(t => ({ ...t, i: cloud.tasks.indexOf(t) })).filter(t =>
                 t.completed ? t.doneDay === isoToday : (!t.due || t.due <= isoToday)
             ).sort(byTime);
             const done = todays.filter(t => t.completed).length;
@@ -2168,13 +2168,13 @@
                 : '';
             document.getElementById('homeTasks').innerHTML = total === 0
                 ? '<div class="empty-state">אין משימות להיום 🎉</div>'
-                : todays.map(t => taskRow(t, false)).join('');
+                : todays.map(t => taskRow(t, true)).join('');
 
             const tomorrow = isoDay(new Date(Date.now() + 24 * 60 * 60 * 1000));
-            const tomorrowTasks = data.tasks.map((t, i) => ({ ...t, i })).filter(t => !t.completed && t.due === tomorrow).sort(byTime);
+            const tomorrowTasks = data.tasks.map(t => ({ ...t, i: cloud.tasks.indexOf(t) })).filter(t => !t.completed && t.due === tomorrow).sort(byTime);
             document.getElementById('homeTomorrowCard').style.display = tomorrowTasks.length ? 'block' : 'none';
             document.getElementById('homeTomorrowDate').textContent = formatDay(tomorrow, true);
-            document.getElementById('homeTomorrow').innerHTML = tomorrowTasks.map(t => taskRow(t, false)).join('');
+            document.getElementById('homeTomorrow').innerHTML = tomorrowTasks.map(t => taskRow(t, true)).join('');
             document.getElementById('tomorrowShare').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
             document.getElementById('tomorrowMail').style.display = tomorrowTasks.length ? 'inline-block' : 'none';
             window.tomorrowText = tomorrowTasks.length
@@ -2546,7 +2546,7 @@
                 .map(([key, label]) => `<button class="chip ${taskFilter === key ? 'on' : ''}" onclick="setTaskFilter('${key}')">${label}</button>`).join('');
             document.getElementById('taskCategoryFilters').innerHTML = TASK_CATEGORIES
                 .map(([key, label]) => `<button class="chip ${taskCategoryFilter === key ? 'on' : ''}" onclick="setTaskCategoryFilter('${key}')">${label}</button>`).join('');
-            const items = data.tasks.map((t, i) => ({ ...t, i })).filter(t => matchesTaskFilter(t, today));
+            const items = data.tasks.map(t => ({ ...t, i: cloud.tasks.indexOf(t) })).filter(t => matchesTaskFilter(t, today));
             if (items.length === 0) {
                 list.innerHTML = '<div class="empty-state">אין משימות</div>';
                 return;
@@ -2576,10 +2576,12 @@
             }).eq('id', task.id), 'task_items');
         }
 
-        function deleteTask(index) {
-            const [task] = cloud.tasks.splice(index, 1);
+        function deleteTask(id) {
+            const index = cloud.tasks.findIndex(t => t.id === id);
+            if (index === -1) return;
+            cloud.tasks.splice(index, 1);
             displayTasks();
-            if (task.id) cloudWrite(sb.from('task_items').delete().eq('id', task.id), 'task_items');
+            cloudWrite(sb.from('task_items').delete().eq('id', id), 'task_items');
         }
 
         function openAI(question) {
