@@ -412,16 +412,16 @@
 
         /* Modern look: softer surfaces, rounder corners, calmer shadows. */
         :root {
-            --ink: #1b1f2e;
-            --muted: #6b7286;
-            --line: #e6e9f2;
-            --surface: #ffffff;
-            --canvas: #f4f6fb;
-            --accent: #5b5ff0;
-            --accent-2: #8b5cf6;
-            --good: #14b57a;
-            --radius: 18px;
-            --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.06);
+            --ink: #1c1917;
+            --muted: #78716c;
+            --line: #e8e2d9;
+            --surface: #fffdf9;
+            --canvas: #f5f1ea;
+            --accent: #1f5c4a;
+            --accent-2: #2f7a63;
+            --good: #2f7a63;
+            --radius: 20px;
+            --shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 6px 18px rgba(28, 25, 23, 0.06);
         }
 
         body {
@@ -434,10 +434,10 @@
         .app-container { background: var(--canvas); }
 
         .header {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            background: var(--accent);
             border-bottom: none;
-            border-radius: 0 0 24px 24px;
-            box-shadow: 0 8px 24px rgba(91, 95, 240, 0.25);
+            border-radius: 0 0 28px 28px;
+            box-shadow: 0 10px 28px rgba(31, 92, 74, 0.22);
             padding: 14px 16px;
         }
 
@@ -478,16 +478,18 @@
         }
 
         button {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-            border-radius: 12px;
-            padding: 12px 18px;
+            background: var(--ink);
+            border-radius: 14px;
+            padding: 13px 18px;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(91, 95, 240, 0.25);
+            letter-spacing: 0.1px;
+            box-shadow: none;
         }
 
         button:hover {
             transform: none;
-            box-shadow: 0 4px 14px rgba(91, 95, 240, 0.3);
+            background: var(--accent);
+            box-shadow: none;
         }
 
         button:active { transform: scale(0.98); }
@@ -511,6 +513,15 @@
 
         .nav-btn { color: var(--muted); font-size: 11px; font-weight: 600; }
         .nav-btn.active { color: var(--accent); }
+
+        .login-screen {
+            background: radial-gradient(circle at 15% 0%, rgba(47, 122, 99, 0.55), transparent 55%), var(--ink);
+        }
+        .home-hero { background: var(--accent); box-shadow: 0 10px 28px rgba(31, 92, 74, 0.22); }
+        .ring span { background: var(--accent); }
+        .bar span { background: var(--accent); }
+        .cal-day.selected { background: var(--ink); }
+        .staple-group summary b { background: var(--accent); }
 
     </style>
 </head>
