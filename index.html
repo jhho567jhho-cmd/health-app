@@ -1596,6 +1596,16 @@
             { name: '🛍️ Shopify', role: 'חנות עצמית', note: 'חנות משלך באינטרנט. דורשת מנוי חודשי והשקעה בפרסום כדי להביא קונים. אתה שולט בכל התהליך.' }
         ];
 
+        // Prices from review sites, not from the vendors' own pricing pages (those were not reachable). Verify before paying.
+        const DROPSHIP_COSTS = [
+            { name: 'Shopify (חנות משלך)', price: '$39 לחודש', note: 'בתשלום שנתי כ-$29 לחודש. יש ניסיון קצר בחינם.' },
+            { name: 'Spocket (ספקים מארה״ב/אירופה)', price: 'מ-$39.99 לחודש', note: 'תוכניות גבוהות יותר עולות יותר. מקור אחד מציין גם תוכנית חינמית.' },
+            { name: 'Zendrop (אוטומציה לחנות Shopify)', price: 'מ-$29 לחודש', note: 'למספר מוצרים מוגבל. מקור אחד בלבד.' },
+            { name: 'USAdrop (אוטומציה לחנות Shopify)', price: '$29.99 לחודש', note: 'תוכנית Pro. מקור אחד בלבד.' },
+            { name: 'DSers (ייבוא מ-AliExpress)', price: 'בסיסי בחינם', note: 'תוכניות בתשלום מ-$19.90 עד $49.90 לחודש.' },
+            { name: 'Dropified', price: 'לא ברור', note: 'לא נמצא מחיר חודשי מאומת.' }
+        ];
+
         const DROPSHIP_STEPS = [
             { title: '1. להבין את הכללים', items: ['לקרוא את מדיניות הדרופשיפינג של eBay', 'להבין מה נחשב יבוא מסחרי ומה יבוא אישי', 'לבחור ערוץ אחד להתחיל בו'] },
             { title: '2. לסדר את העסק והכסף', items: ['לשאול רואה חשבון: עוסק פטור או מורשה, ומע"מ על יבוא', 'לפתוח חשבון לקבלת תשלומים (לבדוק מה נתמך במדינה שלך)', 'לשמור קבלות וחשבוניות מכל רכישה'] },
@@ -1681,6 +1691,14 @@
                     <div class="workout-tip">• ב-eBay אסור לקנות מקמעונאי ולשלוח לקונה. צריך ספק סיטונאי או מיצרן.</div>
                     <div class="workout-tip">• יבוא לצורך מכירה הוא יבוא מסחרי, עם מע"מ מהשקל הראשון, ולא יבוא אישי.</div>
                     <div class="workout-tip">• הפטור של עוסק פטור הוא ממע"מ בלבד, לא מדיווח הכנסה. לשאול רואה חשבון לפני המכירה הראשונה.</div>
+                </div>
+                <div class="activity-person">
+                    <b>💰 עלויות חודשיות (בדוק לפני תשלום)</b>
+                    <div class="workout-tip">נלקח ממקורות ביקורת ב-2 בנובמבר 2026. מחירים משתנים, ולכן כדאי לוודא בעמוד הרשמי של כל כלי לפני שמשלמים. אין צורך בתשלום כדי להתחיל: אפשר להתחיל בחשבון חינמי או בניסיון.</div>
+                    ${DROPSHIP_COSTS.map(c => `<div class="activity-row" style="align-items: flex-start;">
+                        <span><b>${c.name}</b><br><small style="color: var(--muted);">${c.note}</small></span>
+                        <span style="white-space: nowrap; font-weight: 700;">${c.price}</span>
+                    </div>`).join('')}
                 </div>
                 <div class="activity-person">
                     <b>הפלטפורמות</b>
