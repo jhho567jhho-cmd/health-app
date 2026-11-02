@@ -18,7 +18,9 @@
 - Repository: `jhho567jhho-cmd/health-app`
 - Working branch: `claude/project-summary-5jpnkw`
 - Live: https://health-app-web-umber.vercel.app/ (Vercel project `health-app-web`, deployed from this branch)
-- Data: Supabase project `iewlhdcinmktrzepjstc`. Tasks, shopping, water, weight and meals sync between both partners; photos and tips stay on each device.
+- Data: Supabase project `iewlhdcinmktrzepjstc`. Tasks, shopping, water, weight, meals, fuel, receipts, workouts, meal plan and projects sync between both partners; photos and tips stay on each device. Fuel and receipt photos are private (the `receipts` bucket).
+- Phone notifications were built and then reverted (commit `a239db6`). The `send-reminders` Edge Function was deployed but has no secrets and no schedule, so it does nothing. Delete it in the Supabase dashboard if it is no longer needed.
+- Pending advisor migration: `supabase/migrations/20261102100000_advisor_fixes.sql` (RLS `auth.uid()` wrapping, foreign-key indexes, trigger search_path). It is committed but was not yet applied when this note was written. Check the advisors before relying on it.
 - Sign-in: email + password. Only emails in `public.allowed_members` can join (see `supabase/migrations`). Personal emails are not stored in the repo.
 - Schema changes: keep every change as a file in `supabase/migrations/`. The connector's `apply_migration` has worked, but was cancelled in some sessions; if so, the SQL is run in the Supabase SQL Editor.
 - `vendor/supabase.js` is supabase-js 2.45.4 (UMD), bundled so the app does not depend on a CDN.
