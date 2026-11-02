@@ -684,6 +684,7 @@
                     <button onclick="showSection('workouts', 'more')">💪 ספורט וחיזוק</button>
                     <button onclick="showSection('fuel', 'more')">⛽ דלק</button>
                     <button onclick="showSection('projects', 'more')">💼 פרויקטים</button>
+                    <button onclick="showSection('dropship', 'more')">🚚 דרופשיפינג</button>
                     <button onclick="showSection('plan', 'more')">🗓️ תפריט שבועי</button>
                     <button onclick="showSection('receipts', 'more')">🧾 קבלות</button>
                     <button onclick="exportBackup()">💾 גיבוי נתונים</button>
@@ -813,6 +814,13 @@
                 </div>
                 <button onclick="addProject()">💼 פתח פרויקט</button>
                 <div id="projectList" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- Dropshipping Tab -->
+            <div id="dropship" class="tab-content">
+                <button class="back-btn" onclick="goBack()">→ חזרה</button>
+                <h2 style="text-align: center; color: var(--accent); margin-bottom: 15px;">🚚 דרופשיפינג</h2>
+                <div id="dropshipContent"></div>
             </div>
 
             <!-- Weekly Plan Tab -->
@@ -1144,6 +1152,7 @@
             renderWorkouts();
             renderFuel();
             renderProjects();
+            renderDropship();
             renderPlan();
             renderReceipts();
             displayTasks();
@@ -1552,7 +1561,73 @@
                 : '<div class="empty-state">עוד לא נרשם תדלוק</div>';
         }
 
-        const PROJECT_STATUSES = [['research', '🔍 מחקר'], ['testing', '🧪 ניסוי'], ['active', '🟢 פעיל'], ['closed', '⚪ סגור']];
+        // General guidance only. Fees, limits and rules change, so check each platform's own help pages before acting.
+        const DROPSHIP_PLATFORMS = [
+            { name: '🛒 AliExpress', role: 'ספק קמעונאי', note: 'מוצרים זולים מסין, עם זמני משלוח ארוכים. מתאים כספק לחנות משלך. לא מתאים לקנייה מהאתר אחרי שקונה שילם ב-eBay.' },
+            { name: '🏭 Alibaba', role: 'ספק סיטונאי', note: 'מחירי סיטונאות ומינימום הזמנה. דורש עסק רשום ותקשורת ישירה עם ספקים. בודקים כל ספק לפני הזמנה גדולה.' },
+            { name: '📦 eBay', role: 'ערוץ מכירה', note: 'שוק מכירה עם עמלה לכל מכירה. דרופשיפינג מותר רק מספק סיטונאי או מיצרן, לא מקמעונאי אחרי שהקונה שילם.' },
+            { name: '🟠 Amazon', role: 'ערוץ מכירה', note: 'שוק גדול עם תנאים ועמלות משלו. לקרוא את מדיניות המוכרים לפני הרשמה.' },
+            { name: '🛍️ Shopify', role: 'חנות עצמית', note: 'חנות משלך באינטרנט. דורשת מנוי חודשי והשקעה בפרסום כדי להביא קונים. אתה שולט בכל התהליך.' }
+        ];
+
+        const DROPSHIP_STEPS = [
+            { title: '1. להבין את הכללים', items: ['לקרוא את מדיניות הדרופשיפינג של eBay', 'להבין מה נחשב יבוא מסחרי ומה יבוא אישי', 'לבחור ערוץ אחד להתחיל בו'] },
+            { title: '2. לסדר את העסק והכסף', items: ['לשאול רואה חשבון: עוסק פטור או מורשה, ומע"מ על יבוא', 'לפתוח חשבון לקבלת תשלומים (לבדוק מה נתמך במדינה שלך)', 'לשמור קבלות וחשבוניות מכל רכישה'] },
+            { title: '3. מחקר מוצרים', items: ['לבדוק 20 מוצרים', 'לכתוב לכל מוצר: מחיר רכישה, מחיר מכירה, עמלות ומשלוח', 'לבדוק כמה מוכרים מוכרים את אותו מוצר', 'לוודא שנשאר רווח אחרי כל העלויות'] },
+            { title: '4. למצוא ספק', items: ['למצוא 2–3 ספקים לכל מוצר', 'לבדוק זמני משלוח, איכות, החזרות ומינימום הזמנה', 'להזמין דגימה אחת לפני שמתחילים למכור'] },
+            { title: '5. לפתוח חשבון מכירה', items: ['להירשם לערוץ שבחרת', 'לאמת זהות ופרטי עסק', 'לכתוב תיאורים ברורים ולהעלות תמונות אמיתיות'] },
+            { title: '6. ניסוי קטן', items: ['למכור 5 פריטים', 'לרשום כל הכנסה והוצאה ביומן הפרויקטים', 'להחליט לפי רווח אמיתי, לא לפי הרגשה'] },
+            { title: '7. הרחבה', items: ['להרחיב רק את מה שהרוויח', 'לבדוק את הכללים שוב כל כמה חודשים'] }
+        ];
+
+        const DROPSHIP_DOCS = { title: 'מה צריך להכין', items: ['תעודת זהות או דרכון', 'פרטי חשבון בנק', 'אישור עוסק (אם נפתח)', 'כתובת למשלוח חזרה', 'מספר טלפון לאימות', 'מסמך מס לפי המדינה של הערוץ (לבדוק מול הערוץ)'] };
+
+        function readDropshipDone() {
+            try { return JSON.parse(localStorage.getItem('dropshipDone') || '{}'); } catch (e) { return {}; }
+        }
+
+        function toggleDropshipStep(key, on) {
+            const done = readDropshipDone();
+            done[key] = on;
+            try { localStorage.setItem('dropshipDone', JSON.stringify(done)); } catch (e) { /* storage may be blocked; the checkbox still works for this visit */ }
+            renderDropship();
+        }
+
+        function renderDropship() {
+            const el = document.getElementById('dropshipContent');
+            if (!el) return;
+            const done = readDropshipDone();
+            const allSteps = [...DROPSHIP_STEPS, DROPSHIP_DOCS];
+            const total = allSteps.reduce((s, st) => s + st.items.length, 0);
+            const count = Object.values(done).filter(Boolean).length;
+            el.innerHTML = `
+                <div class="activity-person">
+                    <b>התקדמות: ${count} מתוך ${total}</b>
+                    <div class="bar" style="margin-top: 8px;"><span style="width: ${total ? Math.round(count / total * 100) : 0}%"></span></div>
+                </div>
+                <div class="activity-person">
+                    <b>שלוש נקודות שחייבים לדעת</b>
+                    <div class="workout-tip">• ב-eBay אסור לקנות מקמעונאי ולשלוח לקונה. צריך ספק סיטונאי או מיצרן.</div>
+                    <div class="workout-tip">• יבוא לצורך מכירה הוא יבוא מסחרי, עם מע"מ מהשקל הראשון, ולא יבוא אישי.</div>
+                    <div class="workout-tip">• הפטור של עוסק פטור הוא ממע"מ בלבד, לא מדיווח הכנסה. לשאול רואה חשבון לפני המכירה הראשונה.</div>
+                </div>
+                <div class="activity-person">
+                    <b>הפלטפורמות</b>
+                    ${DROPSHIP_PLATFORMS.map(p => `<div style="margin: 8px 0;"><b>${p.name}</b> <span class="badge">${p.role}</span><div class="workout-tip">${p.note}</div></div>`).join('')}
+                </div>
+                ${allSteps.map((st, si) => `<div class="activity-person">
+                    <b>${st.title}</b>
+                    ${st.items.map((it, ii) => {
+                        const key = `${si}-${ii}`;
+                        return `<label style="display: flex; gap: 8px; align-items: center; font-weight: 400; color: var(--ink); margin: 8px 0;">
+                            <input type="checkbox" style="width: auto;" ${done[key] ? 'checked' : ''} onchange="toggleDropshipStep('${key}', this.checked)">
+                            <span>${it}</span></label>`;
+                    }).join('')}
+                </div>`).join('')}
+                <div class="workout-tip">המידע כאן כללי. לפני כל החלטה כדאי לבדוק את האתר הרשמי של הפלטפורמה או לשאול רואה חשבון.</div>`;
+        }
+
+        const PROJECT_STATUSES =[['research', '🔍 מחקר'], ['testing', '🧪 ניסוי'], ['active', '🟢 פעיל'], ['closed', '⚪ סגור']];
 
         function addProject() {
             const name = document.getElementById('projectName').value.trim();
