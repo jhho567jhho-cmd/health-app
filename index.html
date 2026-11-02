@@ -820,6 +820,30 @@
             <div id="dropship" class="tab-content">
                 <button class="back-btn" onclick="goBack()">→ חזרה</button>
                 <h2 style="text-align: center; color: var(--accent); margin-bottom: 15px;">🚚 דרופשיפינג</h2>
+                <div class="activity-person">
+                    <b>✅ המשימות שלנו</b>
+                    <div id="dsList-task"></div>
+                    <div class="home-add" style="margin-top: 10px;">
+                        <input type="text" id="dsInput-task" placeholder="משימה חדשה...">
+                        <button onclick="addDropshipItem('task')">+ הוסף</button>
+                    </div>
+                </div>
+                <div class="activity-person">
+                    <b>🔍 מה לחקור</b>
+                    <div id="dsList-research"></div>
+                    <div class="home-add" style="margin-top: 10px;">
+                        <input type="text" id="dsInput-research" placeholder="נושא לחקור...">
+                        <button onclick="addDropshipItem('research')">+ הוסף</button>
+                    </div>
+                </div>
+                <div class="activity-person">
+                    <b>📚 מה לדעת</b>
+                    <div id="dsList-note"></div>
+                    <div class="home-add" style="margin-top: 10px;">
+                        <input type="text" id="dsInput-note" placeholder="הערה או עובדה...">
+                        <button onclick="addDropshipItem('note')">+ הוסף</button>
+                    </div>
+                </div>
                 <div id="dropshipContent"></div>
             </div>
 
@@ -1085,7 +1109,7 @@
         let realtime = null;
 
         // Shared data, loaded from Supabase. Photos and tips stay on this device.
-        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], projects: [], projectEntries: [], mealPlan: [], receipts: [], weights: [], menu: [], water: {} };
+        const cloud = { tasks: [], shopping: [], catalog: [], settings: [], workoutLogs: [], fuelLogs: [], projects: [], projectEntries: [], dropshipItems: [],mealPlan: [], receipts: [], weights: [], menu: [], water: {} };
 
         const NAME_KEYS = { 'חיים': 'chaim', 'דבורה': 'devorah' };
 
@@ -1117,6 +1141,7 @@
             project_entries: ['projectEntries', 'entry_date', r => ({
                 id: r.id, projectId: r.project_id, kind: r.kind, amount: Number(r.amount), entryDate: r.entry_date, note: r.note || '', userId: r.user_id
             })],
+            dropship_items: ['dropshipItems', 'created_at', r => ({ id: r.id, kind: r.kind, title: r.title, done: r.done, userId: r.user_id })],
             meal_plan: ['mealPlan', 'plan_date', r => ({ date: r.plan_date, slot: r.slot, meal: r.meal })],
             receipts: ['receipts', 'receipt_date', r => ({ id: r.id, amount: r.amount === null ? null : Number(r.amount), date: r.receipt_date, note: r.note || '', path: r.file_path, userId: r.user_id })],
             weight_entries: ['weights', 'measured_at', r => ({
@@ -1153,6 +1178,7 @@
             renderFuel();
             renderProjects();
             renderDropship();
+            renderDropshipItems();
             renderPlan();
             renderReceipts();
             displayTasks();
@@ -1584,6 +1610,51 @@
 
         function readDropshipDone() {
             try { return JSON.parse(localStorage.getItem('dropshipDone') || '{}'); } catch (e) { return {}; }
+        }
+
+        const DROPSHIP_KINDS = ['task', 'research', 'note'];
+
+        function escapeText(s) {
+            return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+        }
+
+        function addDropshipItem(kind) {
+            const input = document.getElementById(`dsInput-${kind}`);
+            const title = input.value.trim();
+            if (!title) {
+                showError('⚠️ כתוב משהו');
+                return;
+            }
+            input.value = '';
+            cloudWrite(sb.from('dropship_items').insert({ couple_id: coupleId, user_id: userId, kind: kind, title: title }), 'dropship_items');
+        }
+
+        function toggleDropshipItem(id, done) {
+            cloudWrite(sb.from('dropship_items').update({ done: done }).eq('id', id), 'dropship_items');
+        }
+
+        function removeDropshipItem(id) {
+            if (!confirm('למחוק את הפריט?')) return;
+            cloudWrite(sb.from('dropship_items').delete().eq('id', id), 'dropship_items');
+        }
+
+        function renderDropshipItems() {
+            const personName = id => memberKey(id) === 'devorah' ? 'דבורה' : 'חיים';
+            DROPSHIP_KINDS.forEach(kind => {
+                const el = document.getElementById(`dsList-${kind}`);
+                if (!el) return;
+                const items = cloud.dropshipItems.filter(i => i.kind === kind);
+                el.innerHTML = items.length
+                    ? items.map(i => `<div class="activity-row">
+                        <label style="display: flex; gap: 8px; align-items: center; flex: 1; font-weight: 400;">
+                            ${kind === 'task' ? `<input type="checkbox" style="width: auto;" ${i.done ? 'checked' : ''} onchange="toggleDropshipItem('${i.id}', this.checked)">` : ''}
+                            <span style="${i.done ? 'text-decoration: line-through; color: var(--muted);' : ''}">${escapeText(i.title)}</span>
+                        </label>
+                        <span style="font-size: 12px; color: var(--muted);">${personName(i.userId)}</span>
+                        ${i.userId === userId ? `<button class="chip-del" onclick="removeDropshipItem('${i.id}')">✕</button>` : ''}
+                    </div>`).join('')
+                    : '<div class="empty-state">עוד אין פריטים</div>';
+            });
         }
 
         function toggleDropshipStep(key, on) {
