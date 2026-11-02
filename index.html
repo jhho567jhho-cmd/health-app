@@ -410,6 +410,108 @@
         .row-main { cursor: pointer; }
         .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 8px; background: #fff1d6; color: #b26a00; }
 
+        /* Modern look: softer surfaces, rounder corners, calmer shadows. */
+        :root {
+            --ink: #1b1f2e;
+            --muted: #6b7286;
+            --line: #e6e9f2;
+            --surface: #ffffff;
+            --canvas: #f4f6fb;
+            --accent: #5b5ff0;
+            --accent-2: #8b5cf6;
+            --good: #14b57a;
+            --radius: 18px;
+            --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.06);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Arial Hebrew', 'Helvetica Neue', sans-serif;
+            background: var(--canvas);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container { background: var(--canvas); }
+
+        .header {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            border-bottom: none;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 8px 24px rgba(91, 95, 240, 0.25);
+            padding: 14px 16px;
+        }
+
+        .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.2px; }
+
+        .logout-btn { border-radius: 999px; border-color: rgba(255, 255, 255, 0.6); }
+
+        .content { padding: 16px 16px 100px; }
+
+        .home-card, .workout-card, .activity-person, .plan-day, .staple-group {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        label { color: var(--muted); font-weight: 600; font-size: 13px; }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="datetime-local"],
+        textarea,
+        select {
+            background: var(--surface);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(91, 95, 240, 0.15);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(91, 95, 240, 0.25);
+        }
+
+        button:hover {
+            transform: none;
+            box-shadow: 0 4px 14px rgba(91, 95, 240, 0.3);
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .chip { border-radius: 999px; background: #eef0fb; }
+        .chip.on { background: var(--good); }
+
+        .sheet { background: var(--canvas); }
+        .sheet-head { background: var(--canvas); border-bottom: none; }
+        .sheet .field { border-radius: 14px; border: 1px solid var(--line); }
+        .type-tile { border-radius: 20px; border-color: var(--line); box-shadow: var(--shadow) !important; }
+
+        .bottom-nav {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--line);
+            box-shadow: 0 -4px 20px rgba(16, 24, 40, 0.05);
+            padding: 8px 6px 14px;
+        }
+
+        .nav-btn { color: var(--muted); font-size: 11px; font-weight: 600; }
+        .nav-btn.active { color: var(--accent); }
+
     </style>
 </head>
 <body>
