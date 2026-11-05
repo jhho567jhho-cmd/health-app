@@ -430,8 +430,15 @@
 
             <!-- Shop Tab (AliExpress search links) -->
             <div id="shop" class="tab-content">
-                <h2 style="text-align: center; color: #667eea; margin-bottom: 10px;">🛒 קניות באלי אקספרס</h2>
-                <p style="font-size: 13px; color: #555; margin-bottom: 12px;">בחר קטגוריה או כתוב חיפוש. האפליקציה תפתח את אלי אקספרס עם תוצאות.</p>
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 10px;">🛒 קניות</h2>
+                <p style="font-size: 13px; color: #555; margin-bottom: 12px;">בחר חנות, בחר קטגוריה או כתוב חיפוש. האפליקציה תפתח את החנות בדפדפן עם תוצאות.</p>
+                <div class="input-group">
+                    <label>חנות:</label>
+                    <select id="shopStore">
+                        <option value="aliexpress">AliExpress</option>
+                        <option value="shein">SHEIN</option>
+                    </select>
+                </div>
                 <div class="input-group">
                     <label>חיפוש חופשי:</label>
                     <input type="text" id="shopQuery" placeholder="לדוגמה: גומיות אימון">
@@ -596,14 +603,19 @@
             event.target.classList.add('active');
         }
 
+        const SHOP_URLS = {
+            aliexpress: q => 'https://www.aliexpress.com/wholesale?SearchText=' + encodeURIComponent(q),
+            shein: q => 'https://www.shein.com/search?q=' + encodeURIComponent(q)
+        };
+
         function shopSearch(query) {
             const q = (query || '').trim();
             if (!q) {
                 showSuccess('✏️ כתוב מילת חיפוש קודם');
                 return;
             }
-            const url = 'https://www.aliexpress.com/wholesale?SearchText=' + encodeURIComponent(q);
-            window.open(url, '_blank', 'noopener');
+            const store = document.getElementById('shopStore').value;
+            window.open(SHOP_URLS[store](q), '_blank', 'noopener');
         }
 
         let selectedPhotoFile = null;
