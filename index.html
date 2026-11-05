@@ -336,6 +336,7 @@
             <button class="tab-btn" onclick="switchTab(event, 'tips')">💡 טיפים</button>
             <button class="tab-btn" onclick="switchTab(event, 'weight')">⚖️ משקל</button>
             <button class="tab-btn" onclick="switchTab(event, 'tasks')">✅ משימות</button>
+            <button class="tab-btn" onclick="switchTab(event, 'shop')">🛒 קניות</button>
         </div>
 
         <div class="content">
@@ -425,6 +426,25 @@
                 </div>
                 <button onclick="addTask()" style="margin-bottom: 15px;">✅ הוסף משימה</button>
                 <div id="tasksList"></div>
+            </div>
+
+            <!-- Shop Tab (AliExpress search links) -->
+            <div id="shop" class="tab-content">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 10px;">🛒 קניות באלי אקספרס</h2>
+                <p style="font-size: 13px; color: #555; margin-bottom: 12px;">בחר קטגוריה או כתוב חיפוש. האפליקציה תפתח את אלי אקספרס עם תוצאות.</p>
+                <div class="input-group">
+                    <label>חיפוש חופשי:</label>
+                    <input type="text" id="shopQuery" placeholder="לדוגמה: גומיות אימון">
+                </div>
+                <button onclick="shopSearch(document.getElementById('shopQuery').value)" style="margin-bottom: 15px;">🔍 חפש באלי אקספרס</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button onclick="shopSearch('healthy snacks')">🥜 חטיפים בריאים</button>
+                    <button onclick="shopSearch('protein powder')">💪 חלבון</button>
+                    <button onclick="shopSearch('kitchen scale')">⚖️ משקל למטבח</button>
+                    <button onclick="shopSearch('water bottle')">💧 בקבוק מים</button>
+                    <button onclick="shopSearch('resistance bands')">🏋️ גומיות אימון</button>
+                    <button onclick="shopSearch('yoga mat')">🧘 מזרן יוגה</button>
+                </div>
             </div>
         </div>
     </div>
@@ -574,6 +594,16 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
+        }
+
+        function shopSearch(query) {
+            const q = (query || '').trim();
+            if (!q) {
+                showSuccess('✏️ כתוב מילת חיפוש קודם');
+                return;
+            }
+            const url = 'https://www.aliexpress.com/wholesale?SearchText=' + encodeURIComponent(q);
+            window.open(url, '_blank', 'noopener');
         }
 
         let selectedPhotoFile = null;
