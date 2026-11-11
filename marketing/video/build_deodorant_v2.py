@@ -74,7 +74,7 @@ for f in range(total):
         pos = ((W - prod.width) // 2, 430)
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0)); layer.paste(prod, pos, prod)
         img.alpha_composite(layer)
-        text_c(d, "לחנות המלאה", 1200, f_big, INK)
+        text_c(d, "מוזמנים להכיר", 1200, f_big, INK)
         # CTA pill
         btn_y = 1360
         d.rounded_rectangle((180, btn_y, W - 180, btn_y + 150), radius=75, fill=(39, 120, 80))
