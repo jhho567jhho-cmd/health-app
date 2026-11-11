@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>פוראוור ברייט – ג'ל לצחצוח שיניים</title>
+  <style>
+    :root { --bg:#f6f1ea; --ink:#1e2622; --accent:#27784f; --muted:#5a6660; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg:#16201b; --ink:#f2f5f3; --accent:#5fbf86; --muted:#a9b8ae; }
+    }
+    :root[data-theme="dark"] { --bg:#16201b; --ink:#f2f5f3; --accent:#5fbf86; --muted:#a9b8ae; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, "Segoe UI", Arial, sans-serif; }
+    main { max-width: 480px; margin: 0 auto; padding: 24px 16px 40px; text-align: center; }
+    h1 { font-size: 26px; margin: 8px 0 4px; }
+    p.sub { color: var(--muted); margin: 0 0 20px; font-size: 16px; }
+    a.video-link { display:block; position:relative; border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.15); }
+    video { width:100%; display:block; }
+    a.video-link::after { content:"לחצו לחנות"; position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); color:#fff; padding:8px 16px; border-radius:999px; font-size:15px; }
+    a.cta { display:inline-block; margin-top:20px; background:var(--accent); color:#fff; text-decoration:none; padding:14px 28px; border-radius:999px; font-size:18px; font-weight:bold; }
+    .note { color: var(--muted); font-size: 13px; margin-top: 28px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>פשוט. נעים. שלך.</h1>
+    <p class="sub">ג'ל צחצוח עם אלוורה ופרופוליס, בלי פלואוריד</p>
+
+    <a class="video-link" href="https://flpil.co.il/?agent=81512" target="_blank" rel="noopener">
+      <video src="toothpaste_v1.mp4" autoplay muted loop playsinline aria-label="סרטון על פוראוור ברייט"></video>
+    </a>
+
+    <a class="cta" href="https://flpil.co.il/?agent=81512" target="_blank" rel="noopener">למעבר לחנות</a>
+
+    <p class="note">
+      סוכן מורשה של FOREVER ישראל. ההזמנה נעשית בחנות הרשמית.<br>
+      המידע על המוצר מבוסס על תיאור המוצר בחנות.
+    </p>
+  </main>
+</body>
+</html>
