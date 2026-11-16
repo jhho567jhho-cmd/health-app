@@ -76,7 +76,7 @@ for f in range(TOTAL):
     d3 = ImageDraw.Draw(img)
     center(d3, "החזרה עד 30 יום לפי מדיניות החברה", 1600, F(36, False), WHITE)
     d3.rounded_rectangle((120, 1700, W-120, 1790), radius=45, fill=(20,20,24,200))
-    center(d3, "FOREVER ישראל  |  סוכן מורשה", 1716, F(38, False), WHITE)
+    center(d3, "סוכן מורשה", 1716, F(38, False), WHITE)
     img.convert("RGB").save(f"{frames}/f{f:05d}.png")
 subprocess.run(["ffmpeg","-y","-loglevel","error","-framerate",str(FPS),"-i",f"{frames}/f%05d.png",
     "-c:v","libx264","-pix_fmt","yuv420p","-crf","21","-movflags","+faststart",f"{OUT}/lips_polished_9s.mp4"], check=True)
