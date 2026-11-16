@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>אלו ליפס – שפתון</title>
+  <style>
+    :root { --bg:#f6f1ea; --ink:#1e2622; --accent:#8c3b52; --muted:#5a6660; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg:#1a1216; --ink:#f5eef0; --accent:#e27b96; --muted:#b9a7ad; }
+    }
+    :root[data-theme="dark"] { --bg:#1a1216; --ink:#f5eef0; --accent:#e27b96; --muted:#b9a7ad; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, "Segoe UI", Arial, sans-serif; }
+    main { max-width: 420px; margin: 0 auto; padding: 24px 16px 40px; text-align: center; }
+    h1 { font-size: 24px; margin: 8px 0 16px; }
+    a.video-link { display:block; position:relative; border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+    video { width:100%; display:block; }
+    a.video-link::after { content:"לחצו לחנות"; position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.6); color:#fff; padding:8px 16px; border-radius:999px; font-size:15px; }
+    a.cta { display:inline-block; margin-top:20px; background:var(--accent); color:#fff; text-decoration:none; padding:14px 28px; border-radius:999px; font-size:18px; font-weight:bold; }
+    .note { color: var(--muted); font-size: 13px; margin-top: 26px; line-height: 1.6; }
+    .note a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>השפתיים מדברות בשקט.</h1>
+    <a class="video-link" href="https://flpil.co.il/?agent=81512" target="_blank" rel="noopener">
+      <video src="lips_polished_9s.mp4" autoplay muted loop playsinline aria-label="סרטון שפתון אלו ליפס"></video>
+    </a>
+    <a class="cta" href="https://flpil.co.il/?agent=81512" target="_blank" rel="noopener">למעבר לחנות</a>
+    <div class="note">
+      <p>סוכן מורשה. ההזמנה נעשית בחנות.</p>
+      <p>החזרה עד 30 יום לפי מדיניות החברה: <a href="https://flpil.co.il/%D7%94%D7%97%D7%96%D7%A8%D7%95%D7%AA-%D7%95%D7%94%D7%97%D7%9C%D7%A4%D7%95%D7%AA/" target="_blank" rel="noopener">החזרות והחלפות</a></p>
+    </div>
+  </main>
+</body>
+</html>
